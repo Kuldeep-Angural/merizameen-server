@@ -1,0 +1,14 @@
+export  const userAlreadyExist = "1617 User Already Exist with this Email";
+export  const internalServerError = '1616 internal-server Error';
+export  const registrationSuccessFully = 'Registration  Successful';
+export  const userNotFound = "1618 User not found with this Email";
+export  const invalidPassword = "1619 Invalid Password";
+export  const loginSuccessfully = "Logged-in SuccessFully";
+export  const invalidRefreshToken ="1620 invalid Refresh Token";
+export  const validRefreshToken = "validRefreshTOken";
+export  const accessTokenCreatedSuccessfully = "Access Token Created Successfully ";
+export  const badRequest = "Bad Request";
+export  const logout = "logout Successfully";
+export  const accessDenied = "Access Denied : Access Token not provided";
+export  const accessDeniedNotValidToken = "Access Denied : not a valid Token";
+export  const notAuthorized = "You are not Authorized";
