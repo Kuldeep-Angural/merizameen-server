@@ -4,15 +4,15 @@ import mongoose, { Schema } from "mongoose";
 const userSchema = new Schema({
   name: {
     type: String,
-    max: 32,
+    max: 3266,
     required: true,
     min: 6,
   },
 
   mobile: {
     type: String,
-    max: 32,
-    min: 6,
+    max: 8979797,
+    min: 10,
   },
 
   email: {
@@ -52,6 +52,21 @@ const userSchema = new Schema({
   profilePic:{
     type:String,
     required:false
+  },
+
+  verificationCode:{
+    type :Number,
+    max:99989798,
+  },
+
+  verificationExpiryTime: {
+    type:String,
+    required:false
+  },
+
+  isVerified:{
+    type:Boolean,
+    default:false
   },
 
   updatedAt: {

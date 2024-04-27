@@ -5,6 +5,8 @@ import  { invalidRefreshToken, validRefreshToken } from '../../constants/message
 import dotenv from "dotenv";
 import token from '../../model/userToken.js';
 import user from '../../model/user.js';
+import { emailService } from '../email/emailService.js';
+import { welcomeEmail } from '../../template/welcomeEmailTemplate.js';
 dotenv.config();
 
 
@@ -35,14 +37,16 @@ export const generateRefreshToken = async (data) => {
             process.env.REFRESH_TOKEN_SECRET,
             { expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES_TIME }
         );
-       await user.findByIdAndUpdate(data._id,{
+     const updated =  await user.findByIdAndUpdate(data._id,{
             name:data.name,
             email:data.email,
             mobile:data.mobile,
             password:data.password,
             refreshToken:refreshToken,
-            roles:data.roles
+            roles:data.roles,
+            isVerified:true,
         })
+       await  emailService({to:updated.email,subject:'welcome to merizameen',html:welcomeEmail({name:updated.name,email:updated.email})});
         return refreshToken;
     } catch (error) {
             return error

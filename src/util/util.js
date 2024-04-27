@@ -37,3 +37,20 @@ export const storage = multer.diskStorage({
         cb(null,file.originalname)
     }
 })
+
+export const  generateRandomNumber = () => {
+  return Math.floor(Math.random() * 900000) + 100000;
+}
+
+export const  getCurrentTime = (incremented) =>  {
+  const now = new Date();
+  incremented && now.setMinutes(now.getMinutes() + incremented);
+  const options = {
+    timeZone: 'Asia/Kolkata',
+    hour12: false,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  };
+  return now.toLocaleString('en-IN', options);
+}

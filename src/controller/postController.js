@@ -44,22 +44,37 @@ router.post('/addProperty', authentication,checkRoles(),upload.array('propertyIm
      
         const newPost = await newPostData.save();
 
-        // console.log(newPost);
+          const mainImageUrl = await uploadOnCLoudnary(mainImage,`mainImage`,`userId:${userId}`);
 
-    
-     
-      
-      
-      
+          for (const file of propertyImages) {
+          const result = await uploadOnCLoudnary(file,`propertyImages${index}`,`userId:${userId}`);
+          if (result) { propertyImagesUrl.push(result); }
+               index++; 
+          }
 
-          // const mainImageUrl = await uploadOnCLoudnary(mainImage,`mainImage`,`userId:${userId}`);
-
-          // for (const file of propertyImages) {
-          // const result = await uploadOnCLoudnary(file,`propertyImages${index}`,`userId:${userId}`);
-          // if (result) { propertyImagesUrl.push(result); }
-          //      index++; 
-          // }
-
+          const existingPost = await addPost.findByIdAndUpdate(newPost._id,
+            {
+              userId,
+              mainImage:mainImageUrl,
+              propertyImages:propertyImagesUrl,
+              title,
+              description,
+              propertyType,
+              postFor,
+              location: { state, city, district, pinCode },
+              basicInfo: { bedRooms, bathRooms, totalArea, carPetArea, ageOfProperty },
+              amenities: {
+                  carParking: amenities?.carParking || 'N',
+                  mainMaintenance: amenities?.maintenance || 'N',
+                  vastuCompliant: amenities?.vastuCompliant || 'N',
+                  powerBackup: amenities?.powerBackup || 'N',
+                  park: amenities?.park || 'N',
+                  gym: amenities?.gym || 'N',
+                  clubHouse: amenities?.clubHouse || 'N'
+              },
+              landMarks: { hospital, bank, atm, metro, railway, airport },
+            }
+          );
      res.status(200).json({ message: 'Post Added please wait for some time if not visible' });
   }
 );

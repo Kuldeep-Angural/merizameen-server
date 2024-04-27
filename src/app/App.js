@@ -3,21 +3,42 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import databaseConnector from "../config/databaseConnector.js";
-import cors from 'cors';
-import authController  from '../controller/authController.js'
-import postController from '../controller/postController.js';
-
+import cors from "cors";
+import authController from "../controller/authController.js";
+import postController from "../controller/postController.js";
+import userController from "../controller/userController.js";
+import { emailService } from "../service/email/emailService.js";
+import { veriFyOtp } from "../template/emailVerifyTemplate.js";
 
 const app = express();
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 app.use(express.json());
-const PORT = process.env.PORT || 8081;databaseConnector();
-app.use(cors({ origin:process.env.CLIENT_URL,methods:"GET,POST,PUT,DELETE",credentials:true}));
+const PORT = process.env.PORT || 8081;
+databaseConnector();
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    methods: "GET,POST,PUT,DELETE",
+    credentials: true,
+  })
+);
 
-app.get('/api/',(req,res)=>{res.json({message:`server is running on port${process.env.PORT} `})})
-app.use('/api/auth',authController);
-app.use('/api/user',postController);
+app.get("/api/", (req, res) => {
+  res.json({ message: `server is running on port${process.env.PORT} ` });
+});
+app.post("/sendEmail",async (req, res) => {
+  res.json = await emailService({
+    to: "kuldeep.navv@gmail.com",
+    subject: "this is testing email from merizameen",
+    text:'text',
+    html: veriFyOtp(69897)
+  });
+});
+app.use("/api/auth", authController);
+app.use("/api/user", userController);
+app.use("/api/post", postController);
+
 app.listen(PORT, () => {
   console.log("Congratulations Server started Successfully on PORT:", PORT);
   console.log("Wait for Loading all Module");
