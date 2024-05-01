@@ -17,7 +17,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 8081;
 databaseConnector();
 app.use(
-  cors();
+  cors()
 );
 
 // app.use(
