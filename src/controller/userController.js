@@ -26,7 +26,7 @@ router.post('/otpRequestForPasswordChange', async (req, res) => {
     const existUser = await User.findOne({ email });
 
     if (!existUser) {
-      return res.status(400).json({ status: 400, message: userNotFound });
+      return res.status(400).json( convertToResponse({data:{},status:400,messageType:'error' , messageText:userNotFound}));
     }
 
     await User.findByIdAndUpdate(existUser._id, {
@@ -37,14 +37,12 @@ router.post('/otpRequestForPasswordChange', async (req, res) => {
 
     await sendForgotPasswordEmail(existUser, otp);
 
-    return res.status(200).json({
-      status: 200,
-      id: existUser.id,
-      message: passwordResetOtpMail,
-    });
+    return res.status(200).json(
+      convertToResponse({data:{id: existUser.id},status:200,messageType:'success' , messageText:passwordResetOtpMail}));
   } catch (error) {
     console.error('Error in OTP request for password change:', error);
-    return res.status(500).json({ status: 500, message: internalServerError });
+    return res.status(500).json(convertToResponse({data:{},status:500,messageType:'error' , messageText:internalServerError}));
+      
   }
 });
 
@@ -63,13 +61,19 @@ router.post('/changePassword', async (req, res) => {
         
       });
 
-      return res.status(200).json({ status: 200, message: passwordUpdate });
+      return res.status(200).json(
+        convertToResponse({data:{},status:200,messageType:'success' , messageText:passwordUpdate}));
+
     } else {
-      return res.status(400).json({ message:invalidOrExpireOtp  });
+      return res.status(400).json(
+        convertToResponse({data:{},status:400,messageType:'error' , messageText:invalidOrExpireOtp}));
+        
     }
   } catch (error) {
     console.error('Error in changing password:', error);
-    return res.status(500).json({ message: someThingWentWrong });
+    return res.status(500).json(
+      convertToResponse({data:{},status:500,messageType:'error' , messageText:someThingWentWrong}));
+      
   }
 });
 
