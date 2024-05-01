@@ -52,7 +52,7 @@ router.post("/signup", async (req, res) => {
 
     if (existingUser) {
       console.log(convertToResponse({data:{},status:400,messageType:'error' , messageText:'User already exists'}));
-      return res.status(400).json(convertToResponse({data:{},status:400,messageType:'error' , messageText:'User already exists'}));
+      return res.json(convertToResponse({data:{},status:400,messageType:'error' , messageText:'User already exists'}));
     }
 
     const otp = generateRandomNumber();
@@ -84,7 +84,7 @@ router.post("/signup", async (req, res) => {
     return res.status(200).json(convertToResponse({data:{id: savedUser.id},status:200,messageType:'success' , messageText:verifyEmail}));
   } catch (error) {
     console.error(error);
-    return res.status(500).json(convertToResponse({data:{},status:500,messageType:'error' , messageText:internalServerError}));
+    return res.json(convertToResponse({data:{},status:500,messageType:'error' , messageText:internalServerError}));
   }
 });
 
@@ -93,7 +93,7 @@ router.post("/verify", async (req, res) => {
     const { id, otp } = req.body;
 
     if (!id || !otp) {
-     return res.status(400).json(convertToResponse({data:{},status:400,messageType:'error' , messageText:"Missing user ID or OTP"}));  
+     return res.json(convertToResponse({data:{},status:400,messageType:'error' , messageText:"Missing user ID or OTP"}));  
     }
 
     const retriveUser = await user.findById(id);
@@ -104,7 +104,7 @@ router.post("/verify", async (req, res) => {
         
         return res.status(200).json(convertToResponse({data:{},status:200,messageType:'success' , messageText:"User created successfully"}));
       } else {
-        return res.status(400).json(convertToResponse({data:{},status:400,messageType:'error' , messageText:"otp invalid "}));
+        return res.json(convertToResponse({data:{},status:400,messageType:'error' , messageText:"otp invalid "}));
       }
     } else {
       await user.findByIdAndDelete(id);
@@ -114,7 +114,7 @@ router.post("/verify", async (req, res) => {
           convertToResponse({data:{},status:400,messageType:'error' , messageText:"OTP expired, please register again"}));
     }
   } catch (error) {
-          res.status(500).json(convertToResponse({data:{},status:500,messageType:'error' , messageText:"Internal server error"}));
+          res.json(convertToResponse({data:{},status:500,messageType:'error' , messageText:"Internal server error"}));
   }
 });
 
@@ -125,16 +125,16 @@ router.post("/login", async (req, res) => {
     const { email, password } = decodeObject(req.body);
     const userRecord = await user.findOne({ email });
     if (!userRecord) {
-      return res.status(400).json(
+      return res.json(
         convertToResponse({data:{},status:400,messageType:'error' , messageText:userNotFound}));
     }
     const decryptedPassword = decrypt(userRecord.password);
     if (password !== decryptedPassword) {
-      return res.status(400).json(
+      return res.json(
         convertToResponse({data:{},status:400,messageType:'error' , messageText:invalidPassword})       );
     }
     if (!userRecord.isVerified) {
-      return res.status(400).json(
+      return res.json(
         convertToResponse({data:{},status:400,messageType:'error' , messageText:"Not Verified please contact to our customer support "}));
     }
     const { accessToken } = await generateTokens(userRecord);
@@ -148,7 +148,7 @@ router.post("/login", async (req, res) => {
         convertToResponse({data:{accessToken, userData},status:200,messageType:'success' , messageText:loginSuccessfully})      );
   } catch (error) {
     console.log(error);
-    return res.status(500).json(
+    return res.json(
       convertToResponse({data:{},status:500,messageType:'error' , messageText:internalServerError}));
   }
 });
@@ -163,7 +163,7 @@ router.post("/logout", async (req, res) => {
 
     const reqToken = authHeader.substring("Bearer ".length);
     if (!reqToken) {
-      return res.status(400).json(
+      return res.json(
         convertToResponse({data:{},status:400,messageType:'error' , messageText:'session already expired'}));
     }
 
@@ -176,7 +176,7 @@ router.post("/logout", async (req, res) => {
     res.status(200).json(convertToResponse({data:{},status:200,messageType:'success' , messageText:'logged-out'}));
   } catch (err) {
     console.log(err);
-    res.status(500).json(
+    res.json(
       convertToResponse({data:{},status:500,messageType:'error' , messageText:internalServerError}));
   }
 });
@@ -195,7 +195,7 @@ router.post("/refreshToken", async (req, res) => {
       });
     })
     .catch((err) => {
-      res.status(400).json(err);
+      res.json(err);
       console.log(err);
     });
 });
