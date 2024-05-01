@@ -17,12 +17,16 @@ app.use(express.json());
 const PORT = process.env.PORT || 8081;
 databaseConnector();
 app.use(
-  cors({
-    origin: process.env.CLIENT_URL,
-    methods: "GET,POST,PUT,DELETE",
-    credentials: true,
-  })
+  cors();
 );
+
+// app.use(
+//   cors({
+//     origin: process.env.CLIENT_URL,
+//     methods: "GET,POST,PUT,DELETE",
+//     credentials: true,
+//   })
+// );
 
 app.get("/api/", (req, res) => {
   res.json({ message: `server is running on port${process.env.PORT} ` });
