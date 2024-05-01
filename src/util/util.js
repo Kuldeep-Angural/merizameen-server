@@ -2,14 +2,6 @@ import CryptoJS from 'crypto-js';
 import multer from 'multer';
 
 
-export const convertIntoResponse = ({ message, payload, ...rest }) => {
-  const data = {
-    ...(payload && { payload: { ...payload } }),
-    message: message || "Success",
-    ...rest,
-  };
-  return data;
-};
 
 export const encrypt = (text) => {
   return CryptoJS.enc.Base64.stringify(CryptoJS.enc.Utf8.parse(text));
@@ -53,4 +45,15 @@ export const  getCurrentTime = (incremented) =>  {
     second: '2-digit'
   };
   return now.toLocaleString('en-IN', options);
+}
+
+
+export const convertToResponse = ({data,messageText , messageType , status}) => {
+  return  {
+        data:{data},
+        message:{ messageText:messageText,messageType:messageType, },
+        status:status
+
+    }
+    ;
 }

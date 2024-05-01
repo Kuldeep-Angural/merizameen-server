@@ -7,6 +7,7 @@ import {
   verifyRefreshToken,
 } from "../service/auth/authService.js";
 import {
+  convertToResponse,
   decrypt,
   encrypt,
   generateRandomNumber,
@@ -22,6 +23,7 @@ import {
   registrationSuccessFully,
   userAlreadyExist,
   userNotFound,
+  verifyEmail,
 } from "../constants/message.js";
 import userToken from "../model/userToken.js";
 import { emailService } from "../service/email/emailService.js";
@@ -49,7 +51,8 @@ router.post("/signup", async (req, res) => {
     const existingUser = await user.findOne({ email: email });
 
     if (existingUser) {
-      return res.status(400).json({ message: "User already exists." });
+      console.log(convertToResponse({data:{},status:400,messageType:'error' , messageText:'User already exists'}));
+      return res.status(400).json(convertToResponse({data:{},status:400,messageType:'error' , messageText:'User already exists'}));
     }
 
     const otp = generateRandomNumber();
@@ -78,16 +81,10 @@ router.post("/signup", async (req, res) => {
     });
 
     console.log(savedUser, emailResult);
-    return res
-      .status(200)
-      .json({
-        status: 200,
-        id: savedUser.id,
-        message: "Please verify your email and enter OTP.",
-      });
+    return res.status(200).json(convertToResponse({data:{id: savedUser.id},status:200,messageType:'success' , messageText:verifyEmail}));
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error." });
+    return res.status(500).json(convertToResponse({data:{},status:500,messageType:'error' , messageText:internalServerError}));
   }
 });
 
@@ -96,7 +93,7 @@ router.post("/verify", async (req, res) => {
     const { id, otp } = req.body;
 
     if (!id || !otp) {
-      return res.status(400).json({ message: "Missing user ID or OTP" });
+     return res.status(400).json(convertToResponse({data:{},status:400,messageType:'error' , messageText:"Missing user ID or OTP"}));  
     }
 
     const retriveUser = await user.findById(id);
@@ -104,18 +101,20 @@ router.post("/verify", async (req, res) => {
     if (retriveUser?.verificationExpiryTime >= getCurrentTime()) {
       if (otp == retriveUser?.verificationCode) {
         await generateRefreshToken(retriveUser);
-        return res.status(200).json({status:200, message: "User created successfully" });
+        
+        return res.status(200).json(convertToResponse({data:{},status:200,messageType:'success' , messageText:"User created successfully"}));
       } else {
-        return res.status(400).json({ message: "Invalid OTP" });
+        return res.status(400).json(convertToResponse({data:{},status:400,messageType:'error' , messageText:"otp invalid "}));
       }
     } else {
       await user.findByIdAndDelete(id);
       return res
         .status(400)
-        .json({ message: "OTP expired, please register again" });
+        .json(
+          convertToResponse({data:{},status:400,messageType:'error' , messageText:"OTP expired, please register again"}));
     }
   } catch (error) {
-    return res.status(500).json({ message: "Internal server error" });
+          res.status(500).json(convertToResponse({data:{},status:500,messageType:'error' , messageText:"Internal server error"}));
   }
 });
 
@@ -126,27 +125,31 @@ router.post("/login", async (req, res) => {
     const { email, password } = decodeObject(req.body);
     const userRecord = await user.findOne({ email });
     if (!userRecord) {
-      return res.status(400).json({ message: userNotFound });
+      return res.status(400).json(
+        convertToResponse({data:{},status:400,messageType:'error' , messageText:userNotFound}));
     }
     const decryptedPassword = decrypt(userRecord.password);
     if (password !== decryptedPassword) {
-      return res.status(400).json({ message: invalidPassword });
+      return res.status(400).json(
+        convertToResponse({data:{},status:400,messageType:'error' , messageText:invalidPassword})       );
     }
     if (!userRecord.isVerified) {
-      return res.status(400).json({ message: 'Not Verified please contact to our customer support ' });
+      return res.status(400).json(
+        convertToResponse({data:{},status:400,messageType:'error' , messageText:"Not Verified please contact to our customer support "}));
     }
     const { accessToken } = await generateTokens(userRecord);
     const userData = btoa(
       `${userRecord._id}:${userRecord.name}:${userRecord.email}:${userRecord.mobile}:${userRecord.roles}`
     );
-    console.log(accessToken, userData);
 
     return res
       .status(200)
-      .json({ message: loginSuccessfully, accessToken, userData });
+      .json(
+        convertToResponse({data:{accessToken, userData},status:200,messageType:'success' , messageText:loginSuccessfully})      );
   } catch (error) {
     console.log(error);
-    return res.status(500).json({ message: internalServerError });
+    return res.status(500).json(
+      convertToResponse({data:{},status:500,messageType:'error' , messageText:internalServerError}));
   }
 });
 
@@ -154,24 +157,27 @@ router.post("/logout", async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: accessDenied });
+      return res.status(401).json(
+      convertToResponse({data:{},status:400,messageType:'error' , messageText:accessDenied}));        
     }
 
     const reqToken = authHeader.substring("Bearer ".length);
     if (!reqToken) {
-      return res.status(401).json({ message: "session already expired" });
+      return res.status(400).json(
+        convertToResponse({data:{},status:400,messageType:'error' , messageText:'session already expired'}));
     }
 
-    console.log("reqToken", reqToken);
     const token = await userToken.findOneAndDelete({ token: reqToken });
     console.log(token);
     if (!token) {
-      return res.status(200).json({ error: false, message: "logged-out" });
+      return res.status(200).json(
+        convertToResponse({data:{},status:200,messageType:'success' , messageText:'logged-out'}));
     }
-    res.status(200).json({ error: false, message: logout });
+    res.status(200).json(convertToResponse({data:{},status:200,messageType:'success' , messageText:'logged-out'}));
   } catch (err) {
     console.log(err);
-    res.status(500).json({ error: true, message: internalServerError });
+    res.status(500).json(
+      convertToResponse({data:{},status:500,messageType:'error' , messageText:internalServerError}));
   }
 });
 
