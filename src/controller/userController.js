@@ -1,5 +1,5 @@
 import express from 'express';
-import { generateRandomNumber, getCurrentTime, encrypt } from '../util/util.js';
+import { generateRandomNumber, getCurrentTime, encrypt, convertToResponse } from '../util/util.js';
 import { forgotEmailTemplate } from '../template/forgotEmailTemplate.js';
 import { emailService } from '../service/email/emailService.js';
 import User from '../model/user.js';
@@ -37,7 +37,7 @@ router.post('/otpRequestForPasswordChange', async (req, res) => {
 
     await sendForgotPasswordEmail(existUser, otp);
 
-    return res.status(200).json(
+    return res.json(
       convertToResponse({data:{id: existUser.id},status:200,messageType:'success' , messageText:passwordResetOtpMail}));
   } catch (error) {
     console.error('Error in OTP request for password change:', error);
