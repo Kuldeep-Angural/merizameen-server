@@ -44,9 +44,14 @@ const userSchema = new Schema({
     type: Date,
   },
 
-  isGoogleSignUp:{
+  isGoogleUser:{
     type :Boolean,
     default:false,
+  },
+
+  googleId:{
+    type:String,
+    required:false
   },
 
   profilePic:{

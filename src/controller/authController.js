@@ -1,35 +1,16 @@
 import user from "../model/user.js";
 import jwt from "jsonwebtoken";
 import express from "express";
-import {
-  generateRefreshToken,
-  generateTokens,
-  verifyRefreshToken,
-} from "../service/auth/authService.js";
-import {
-  convertToResponse,
-  decrypt,
-  encrypt,
-  generateRandomNumber,
-  getCurrentTime,
-} from "../util/util.js";
-import {
-  accessDenied,
-  accessTokenCreatedSuccessfully,
-  internalServerError,
-  invalidPassword,
-  loginSuccessfully,
-  logout,
-  registrationSuccessFully,
-  userAlreadyExist,
-  userNotFound,
-  verifyEmail,
-} from "../constants/message.js";
+import {generateRefreshToken,generateTokens,verifyRefreshToken,} from "../service/auth/authService.js";
+import {convertToResponse,decrypt,encrypt,generateRandomNumber,getCurrentTime,} from "../util/util.js";
+import {accessDenied,accessTokenCreatedSuccessfully,internalServerError,invalidPassword,  loginSuccessfully,logout,registrationSuccessFully,userAlreadyExist,userNotFound,verifyEmail,} from "../constants/message.js";
 import userToken from "../model/userToken.js";
 import { emailService } from "../service/email/emailService.js";
 import { veriFyOtp } from "../template/emailVerifyTemplate.js";
-
+import passport from '../service/auth/passportService.js';
+import cors from 'cors';
 const router = express.Router();
+const clientUri = process.env.CLIENT_URL;
 
 export const decodeObject = (obj) => {
   const decodedObj = {};
@@ -43,8 +24,24 @@ export const decodeObject = (obj) => {
   return decodedObj;
 };
 
+
+
+router.get('/google',passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+router.get('/google/callback', passport.authenticate('google', { successRedirect:`${clientUri}/`, failureRedirect: `${clientUri}/auth` }));
+
+router.get('/google/profile', (req, res) => {
+  console.log('Inside profile route' , req.user);
+  if (req.user) {
+    return  res.json(convertToResponse({data:{userData:req?.user?.userData,accessToken: req?.user?.accessToken},status:200,messageType:'success' , messageText:'User Logged-in'})); 
+  }
+  else{
+    res.json(convertToResponse({data:{},status:400,messageType:'error' , messageText:'something went wrong'}))
+  }
+});
+
 router.post("/signup", async (req, res) => {
-  console.log("Inside signup");
   try {
     const { name, email, mobile, password } = decodeObject(req.body);
     const newPassword = encrypt(password);
