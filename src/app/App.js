@@ -34,7 +34,7 @@ app.use(passport.session());
 databaseConnector();
 
 // Routes
-app.get("/", (req, res) => res.send("Home Page"));
+app.get("/", (req, res) => res.send("Congratulations! Server started successfully"));
 app.use("/api/auth", authController);
 app.use("/api/user", userController);
 app.use("/api/post", postController);
