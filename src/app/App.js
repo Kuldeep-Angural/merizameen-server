@@ -9,6 +9,7 @@ import databaseConnector from "../config/databaseConnector.js";
 import authController from "../controller/authController.js";
 import postController from "../controller/postController.js";
 import userController from "../controller/userController.js";
+import { serverTest } from "../constants/serverTesting.js";
 
 dotenv.config();
 const app = express();
@@ -34,7 +35,7 @@ app.use(passport.session());
 databaseConnector();
 
 // Routes
-app.get("/", (req, res) => res.send("Congratulations! Server started successfully"));
+app.get("/", (req, res) => res.send(serverTest));
 app.use("/api/auth", authController);
 app.use("/api/user", userController);
 app.use("/api/post", postController);
