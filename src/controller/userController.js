@@ -6,6 +6,7 @@ import User from '../model/user.js';
 import { decodeObject } from './authController.js';
 import { accountDeleted, badRequest, internalServerError, invalidOrExpireOtp, passwordResetOtpMail, passwordUpdate, someThingWentWrong, userNotFound } from '../constants/message.js';
 import user from '../model/user.js';
+import { uploadOnCLoudnary } from '../service/cloudnary/cloudnary.js';
 
 const router = express.Router();
 
@@ -23,7 +24,6 @@ router.post('/details', async (req, res) => {
     const userId = req.body.id;
     const existUser = await user.findById(userId);
 
-    console.log(existUser);
     if (!existUser) {
       return res.json(convertToResponse({ data: {}, status: 400, messageType: 'error', messageText: userNotFound }));
     } else {
@@ -34,6 +34,50 @@ router.post('/details', async (req, res) => {
     return res.json(convertToResponse({ data: {}, status: 400, messageType: 'error', messageText: someThingWentWrong }));
   }
 });
+
+
+router.post('/updateUser', async (req, res) => {
+  try {
+    const { _id, profilePic, name, mobile } = req.body;
+    const existUser = await user.findById(_id);
+
+    if (!existUser) {
+      return res.json(convertToResponse({ 
+        data: {}, 
+        status: 400, 
+        messageType: 'error', 
+        messageText: userNotFound 
+      }));
+    }
+
+    const updateUser = {};
+
+    if (profilePic) {
+      const mainImageUrl = await uploadOnCLoudnary(profilePic, `${_id}`, 'ProfilePictures');
+      updateUser.profilePic = mainImageUrl;
+    }
+
+    if (name) updateUser.name = name;
+    if (mobile) updateUser.mobile = mobile;
+
+    const updatedUser = await user.findByIdAndUpdate(_id, updateUser, { new: true });
+
+    res.json(convertToResponse({ 
+      data: updatedUser, 
+      status: 200, 
+      messageType: 'success', 
+      messageText: 'Details Updated Successfully' 
+    }));
+  } catch (error) {
+    res.json(convertToResponse({ 
+      data: {}, 
+      status: 400, 
+      messageType: 'error', 
+      messageText: someThingWentWrong 
+    }));
+  }
+});
+
 
 
 router.post('/otpRequestForPasswordChange', async (req, res) => {
