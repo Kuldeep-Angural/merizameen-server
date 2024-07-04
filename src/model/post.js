@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-const postSchema = new Schema({
+const propertySchema = new Schema({
   userId: { type: Schema.Types.ObjectId, required: true, max: 9999 },
   mainImage: { type: String, maxlength: 9999 },
   description: { type: String, maxlength: 89787 },
@@ -42,9 +42,14 @@ const postSchema = new Schema({
     railway: { type: String, required: true, maxlength: 32 },
     airport: { type: String, required: true, maxlength: 32 },
   },
+  price:{
+    type:String,
+    required:false,
+    default:'not Disclosed'
+  },
   postedAt: { type: Date, default: Date.now },
 });
 
-const Post = mongoose.model("Post", postSchema);
+const property = mongoose.model("property", propertySchema);
 
-export default Post;
+export default property;

@@ -5,6 +5,7 @@ import { emailService } from '../service/email/emailService.js';
 import User from '../model/user.js';
 import { decodeObject } from './authController.js';
 import { accountDeleted, badRequest, internalServerError, invalidOrExpireOtp, passwordResetOtpMail, passwordUpdate, someThingWentWrong, userNotFound } from '../constants/message.js';
+import user from '../model/user.js';
 
 const router = express.Router();
 
@@ -16,6 +17,24 @@ const sendForgotPasswordEmail = async (user, otp) => {
     text: `Welcome to Merizameen. Here is your verification OTP: ${otp}. It will expire in 30 minutes.`,
   });
 };
+
+router.post('/details', async (req, res) => {
+  try {
+    const userId = req.body.id;
+    const existUser = await user.findById(userId);
+
+    console.log(existUser);
+    if (!existUser) {
+      return res.json(convertToResponse({ data: {}, status: 400, messageType: 'error', messageText: userNotFound }));
+    } else {
+      delete existUser.password;
+      res.json(convertToResponse({ data: existUser, status: 200, messageType: 'success', messageText: 'User Details' }));
+    }
+  } catch (error) {
+    return res.json(convertToResponse({ data: {}, status: 400, messageType: 'error', messageText: someThingWentWrong }));
+  }
+});
+
 
 router.post('/otpRequestForPasswordChange', async (req, res) => {
   try {

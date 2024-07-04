@@ -29,17 +29,18 @@ export const decodeObject = (obj) => {
 router.get('/google',passport.authenticate('google', { scope: ['profile', 'email'] })
 );
 
-router.get('/google/callback', passport.authenticate('google', { successRedirect:`${clientUri}/`, failureRedirect: `${clientUri}/auth` }));
+router.get('/google/callback', passport.authenticate('google', { successRedirect:`${clientUri}/`, failureRedirect: `${clientUri}/` }));
 
 router.get('/google/profile', (req, res) => {
   console.log('Inside profile route' , req.user);
   if (req.user) {
-    return  res.json(convertToResponse({data:{userData:req?.user?.userData,accessToken: req?.user?.accessToken},status:200,messageType:'success' , messageText:'User Logged-in'})); 
+    return  res.json(convertToResponse({data:{userData:req?.user?.userData,accessToken: req?.user?.accessToken , profilePic:req.user.profilePic},status:200,messageType:'success' , messageText:'User Logged-in'})); 
   }
   else{
-    res.json(convertToResponse({data:{},status:400,messageType:'error' , messageText:'something went wrong'}))
+    res.json(convertToResponse({data:{},status:400,messageType:'error' , messageText:'user already have an Account please use your email or password'}))
   }
 });
+
 
 router.post("/signup", async (req, res) => {
   try {
@@ -116,6 +117,19 @@ router.post("/verify", async (req, res) => {
 });
 
 
+router.post("/google/logout", (req, res) => {
+  req.logout(function (error) {
+    if (error) {
+      console.log(error);
+      return next(error)
+    } else {
+      console.log("logout google");
+      res.redirect(`${clientUri}/`);
+    }
+  });
+});
+
+
 
 router.post("/login", async (req, res) => {
   try {
@@ -151,6 +165,7 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/logout", async (req, res) => {
+
   try {
     const authHeader = req.headers["authorization"];
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -171,6 +186,7 @@ router.post("/logout", async (req, res) => {
         convertToResponse({data:{},status:200,messageType:'success' , messageText:'logged-out'}));
     }
     res.status(200).json(convertToResponse({data:{},status:200,messageType:'success' , messageText:'logged-out'}));
+   
   } catch (err) {
     console.log(err);
     res.json(

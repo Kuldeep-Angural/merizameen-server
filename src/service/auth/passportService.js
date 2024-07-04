@@ -15,11 +15,8 @@ passport.use(new GoogleStrategy.Strategy(
       scope:['profile','email']
     },
     async (accessToken, refreshToken, profile, done) => {
-  
-
         console.log("profile---->",profile);
       try {
-
         const existingUser = await user.findOne({ email:profile?.emails[0]?.value  });
         if (!existingUser) {
             const newPassword = encrypt(profile.displayName+'@1234');
@@ -40,7 +37,7 @@ passport.use(new GoogleStrategy.Strategy(
              const userData = btoa(
                 `${savedUser._id}:${savedUser.name}:${savedUser.email}:${savedUser.mobile}:${savedUser.roles}`
               );
-             return done(null, {accessToken:accessToken,userData:userData});
+             return done(null, {accessToken:accessToken,userData:userData,profilePic:savedUser.profilePic});
         }
         else{
             if (existingUser.isGoogleUser) {
@@ -48,7 +45,9 @@ passport.use(new GoogleStrategy.Strategy(
                 const userData = btoa(
                     `${existingUser._id}:${existingUser.name}:${existingUser.email}:${existingUser.mobile}:${existingUser.roles}`
                   );
-                 return done(null, {accessToken:accessToken,userData:userData});
+                 return done(null, {accessToken:accessToken,userData:userData,profilePic:existingUser.profilePic});
+            }else{
+              return done(null, null);
             }
         }
       } catch (error) {
