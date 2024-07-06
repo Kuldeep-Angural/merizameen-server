@@ -184,7 +184,6 @@ const allLikedPropertiesWithUserLikes = allLikedProperties.map((property, index)
   };
 });
 
-    console.log(allLikedPropertiesWithUserLikes);
     if (!allLikedPropertiesWithUserLikes) {
       res.json(convertToResponse({ 
         data: {}, 
@@ -218,18 +217,21 @@ const allLikedPropertiesWithUserLikes = allLikedProperties.map((property, index)
 
 router.get('/getSellerLikes', async (req, res) => {
   try {
-    const user = JSON.parse(req.headers['appcontext']);
-    const userLikes = await propertyLikes.find({sellerId:user._id});
-    const allLikedPropertiesPromises = userLikes.map(element => property.findById(element?.property));
+    const userData = JSON.parse(req.headers['appcontext']);
+    const sellerLikes = await propertyLikes.find({sellerId:userData._id});
+    
+    const users = await user.find({_id:sellerLikes?.userId});
+    console.log(users);
+    const allLikedPropertiesPromises = sellerLikes.map(element => property.findById(element?.property) );
+
     const allLikedProperties = await Promise.all(allLikedPropertiesPromises);
-    const allLikedPropertiesWithUserLikes = allLikedProperties.map((property, index) => {
+    const allLikedPropertiesWithsellerLikes = allLikedProperties.map((property, index) => {
   return {
     ...property.toObject(), 
-    userLikes: userLikes[index]
+    sellerLikes: sellerLikes[index]
   };
 });
-    console.log(allLikedPropertiesWithUserLikes);
-    if (!allLikedPropertiesWithUserLikes) {
+    if (!allLikedPropertiesWithsellerLikes) {
       res.json(convertToResponse({ 
         data: {}, 
         status: 200, 
@@ -238,7 +240,7 @@ router.get('/getSellerLikes', async (req, res) => {
       }));
     }else{
       res.json(convertToResponse({ 
-        data: allLikedPropertiesWithUserLikes, 
+        data: allLikedPropertiesWithsellerLikes, 
         status: 200, 
         messageType: 'Success', 
         messageText: "Total Likes" 
@@ -263,7 +265,6 @@ router.get('/getPostedProperties', async (req, res) => {
   try {
     const user = JSON.parse(req.headers['appcontext']);
     const postedProperty = await property.find({userId:user._id});
-    console.log(postedProperty);
     if (!postedProperty) {
       res.json(convertToResponse({ 
         data: {}, 

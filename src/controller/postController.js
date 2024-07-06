@@ -125,7 +125,8 @@ router.post('/likes', async (req, res) => {
   const likes = new propertyLikes({
     userId:user._id,
     property:retrivedproperty,
-    sellerId:retrivedproperty?.userId
+    sellerId:retrivedproperty?.userId,
+    userName:user?.name
   })
 
   await likes.save();
