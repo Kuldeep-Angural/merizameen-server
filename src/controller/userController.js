@@ -50,7 +50,9 @@ router.post('/updateUser', async (req, res) => {
       }));
     }
 
-    const updateUser = {};
+    const updateUser = {
+      updatedAt:Date.now(),
+    };
 
     if (profilePic) {
       const mainImageUrl = await uploadOnCLoudnary(profilePic, `${_id}`, 'ProfilePictures');
