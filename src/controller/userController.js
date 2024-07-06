@@ -7,6 +7,8 @@ import { decodeObject } from './authController.js';
 import { accountDeleted, badRequest, internalServerError, invalidOrExpireOtp, passwordResetOtpMail, passwordUpdate, someThingWentWrong, userNotFound } from '../constants/message.js';
 import user from '../model/user.js';
 import { uploadOnCLoudnary } from '../service/cloudnary/cloudnary.js';
+import propertyLikes from '../model/propertyLikes.js';
+import property from '../model/post.js';
 
 const router = express.Router();
 
@@ -166,5 +168,129 @@ router.delete('/delete', async (req, res) => {
     return res.json({ message: someThingWentWrong });
   }
 });
+
+
+router.get('/getUserLikes', async (req, res) => {
+  try {
+    const user = JSON.parse(req.headers['appcontext']);
+    const userLikes = await propertyLikes.find({ userId: user._id });
+    const allLikedPropertiesPromises = userLikes.map(element => property.findById(element?.property));
+    const allLikedProperties = await Promise.all(allLikedPropertiesPromises);
+
+const allLikedPropertiesWithUserLikes = allLikedProperties.map((property, index) => {
+  return {
+    ...property.toObject(), // Convert MongoDB document to a plain JavaScript object
+    userLikes: userLikes[index]
+  };
+});
+
+    console.log(allLikedPropertiesWithUserLikes);
+    if (!allLikedPropertiesWithUserLikes) {
+      res.json(convertToResponse({ 
+        data: {}, 
+        status: 200, 
+        messageType: 'Success', 
+        messageText: "No Likes" 
+      }));
+    }else{
+      res.json(convertToResponse({ 
+        data: allLikedPropertiesWithUserLikes, 
+        status: 200, 
+        messageType: 'Success', 
+        messageText: "Total Likes" 
+      }));
+    }
+  }
+  catch(error){
+    res.json(convertToResponse({ 
+      data: {}, 
+      status: 500, 
+      messageType: 'ERROR', 
+      messageText: someThingWentWrong
+    }));
+    console.log(Error);
+  }
+
+})
+
+
+
+
+router.get('/getSellerLikes', async (req, res) => {
+  try {
+    const user = JSON.parse(req.headers['appcontext']);
+    const userLikes = await propertyLikes.find({sellerId:user._id});
+    const allLikedPropertiesPromises = userLikes.map(element => property.findById(element?.property));
+    const allLikedProperties = await Promise.all(allLikedPropertiesPromises);
+    const allLikedPropertiesWithUserLikes = allLikedProperties.map((property, index) => {
+  return {
+    ...property.toObject(), 
+    userLikes: userLikes[index]
+  };
+});
+    console.log(allLikedPropertiesWithUserLikes);
+    if (!allLikedPropertiesWithUserLikes) {
+      res.json(convertToResponse({ 
+        data: {}, 
+        status: 200, 
+        messageType: 'Success', 
+        messageText: "No Likes" 
+      }));
+    }else{
+      res.json(convertToResponse({ 
+        data: allLikedPropertiesWithUserLikes, 
+        status: 200, 
+        messageType: 'Success', 
+        messageText: "Total Likes" 
+      }));
+    }
+  }
+  catch(error){
+    res.json(convertToResponse({ 
+      data: {}, 
+      status: 500, 
+      messageType: 'ERROR', 
+      messageText: someThingWentWrong
+    }));
+    console.log(Error);
+  }
+
+})
+
+
+
+router.get('/getPostedProperties', async (req, res) => {
+  try {
+    const user = JSON.parse(req.headers['appcontext']);
+    const postedProperty = await property.find({userId:user._id});
+    console.log(postedProperty);
+    if (!postedProperty) {
+      res.json(convertToResponse({ 
+        data: {}, 
+        status: 200, 
+        messageType: 'Success', 
+        messageText: "No Property Posted Yet" 
+      }));
+    }else{
+      res.json(convertToResponse({ 
+        data: postedProperty, 
+        status: 200, 
+        messageType: 'Success', 
+        messageText: "Total Properties" 
+      }));
+    }
+  }
+  catch(error){
+    res.json(convertToResponse({ 
+      data: {}, 
+      status: 500, 
+      messageType: 'ERROR', 
+      messageText: someThingWentWrong
+    }));
+    console.log(Error);
+  }
+
+})
+
 
 export default router;

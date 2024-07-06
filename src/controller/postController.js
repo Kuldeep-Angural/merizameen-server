@@ -6,6 +6,8 @@ import { authentication, checkRoles } from '../middelware/authenticate.js';
 import { convertToResponse, storage } from '../util/util.js';
 import { uploadOnCLoudnary } from '../service/cloudnary/cloudnary.js';
 import property from '../model/post.js';
+import propertyLikes from '../model/propertyLikes.js';
+import user from '../model/user.js';
 
 const router = express.Router();
 const upload = multer({ storage });
@@ -20,8 +22,13 @@ router.post('/addProperty', authentication,checkRoles(),upload.array('propertyIm
   const { hospital, atm, bank, railway, metro, airport } = landMarks || {};
   let index = 0; 
   const userId = req?.user?._id;
-  const propertyImagesUrl = [];    
+  const propertyImagesUrl = [];   
   
+  
+  const retrivedUser = await user.findById(userId);
+
+ 
+  console.log(retrivedUser);
   const newProperty  = new property({
         userId:userId,
         title:title||undefined,
@@ -59,7 +66,22 @@ router.post('/addProperty', authentication,checkRoles(),upload.array('propertyIm
            railway:railway||undefined, 
            airport:airport||undefined },
       })
+
+      if (retrivedUser?.memberShip==='free' && retrivedUser?.usage?.posts >= 2) {
+        return res.status(200).json({ message: 'You have Free Account you only add 2 properties' });
+
+      }else if (retrivedUser?.memberShip==='seller' && retrivedUser?.usage?.posts >= 10) {
+        return res.status(200).json({ message: 'You have Seller Membership Account you only add 10 properties' });
+        
+      }else if(retrivedUser?.memberShip==='Buyer' && retrivedUser?.usage?.posts >= 10){
+        return res.status(200).json({ message: 'You have Buyer Membership Account you only add 2 properties' });
+    
+      }else if (retrivedUser?.memberShip==='both' && retrivedUser?.usage?.posts >= 20) {
+       return  res.status(200).json({ message: 'You have Both Membership Account you only add 20 properties' });
+      }
+
       const newPost = await newProperty.save();
+
       const mainImageUrl = await uploadOnCLoudnary(mainImage,`mainImage`,`propertyId:${newPost._id}`);
 
       for (const file of propertyImages) {
@@ -74,6 +96,13 @@ router.post('/addProperty', authentication,checkRoles(),upload.array('propertyIm
           propertyImages:propertyImagesUrl,
         }
       );
+
+      await user.findByIdAndUpdate(userId,{
+        usage:{
+          posts:retrivedUser?.usage?.posts+1
+        }
+      })
+      
      res.status(200).json({ message: 'Post Added please wait for some time if not visible' });
   }
 );
@@ -89,4 +118,22 @@ router.get('/allPropertys', async (req, res) => {
   }));
 })
 
+router.post('/likes', async (req, res) => {
+  const user = JSON.parse(req.headers['appcontext']);
+  const retrivedproperty = await property.findById(req?.body.id);
+  
+  const likes = new propertyLikes({
+    userId:user._id,
+    property:retrivedproperty,
+    sellerId:retrivedproperty?.userId
+  })
+
+  await likes.save();
+  res.json(convertToResponse({ 
+    data: {}, 
+    status: 200, 
+    messageType: 'Success', 
+    messageText: " Likes Property SuccessFully Likes Property Added into your Dashboard. " 
+  }));
+})
 export default router;

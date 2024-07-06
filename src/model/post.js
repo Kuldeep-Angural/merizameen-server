@@ -47,6 +47,9 @@ const propertySchema = new Schema({
     required:false,
     default:'not Disclosed'
   },
+  isActive:{
+    type: Boolean,
+  },
   postedAt: { type: Date, default: Date.now },
 });
 

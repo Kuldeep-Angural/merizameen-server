@@ -78,6 +78,19 @@ const userSchema = new Schema({
     type: Date,
     default: Date.now(),
   },
+
+  memberShip:{
+    type : String,
+    default:'free',
+  },
+
+  usage : {
+    type:Object,
+      posts:{
+        type:Number,
+        default:0,
+      }
+  }
   
 });
 
