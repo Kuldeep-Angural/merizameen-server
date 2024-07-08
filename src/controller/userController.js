@@ -207,7 +207,6 @@ const allLikedPropertiesWithUserLikes = allLikedProperties.map((property, index)
       messageType: 'ERROR', 
       messageText: someThingWentWrong
     }));
-    console.log(Error);
   }
 
 })
@@ -221,7 +220,6 @@ router.get('/getSellerLikes', async (req, res) => {
     const sellerLikes = await propertyLikes.find({sellerId:userData._id});
     
     const users = await user.find({_id:sellerLikes?.userId});
-    console.log(users);
     const allLikedPropertiesPromises = sellerLikes.map(element => property.findById(element?.property) );
 
     const allLikedProperties = await Promise.all(allLikedPropertiesPromises);
@@ -254,7 +252,6 @@ router.get('/getSellerLikes', async (req, res) => {
       messageType: 'ERROR', 
       messageText: someThingWentWrong
     }));
-    console.log(Error);
   }
 
 })
@@ -288,10 +285,40 @@ router.get('/getPostedProperties', async (req, res) => {
       messageType: 'ERROR', 
       messageText: someThingWentWrong
     }));
-    console.log(Error);
   }
 
 })
+
+router.post('/markSoldProperty', async (req, res) => {
+  const { propertyId } = req.body;
+
+  try {
+    
+      await property.findByIdAndUpdate({ _id: propertyId }, {
+        isSold: true,
+        isActive: false,
+      });
+
+      return res.json(convertToResponse({
+        data: {},
+        status: 200,
+        messageType: 'Success',
+        messageText: 'Property set to be sold',
+      }));
+  } catch (error) {
+    console.error('Error:', error);
+
+    return res.json(convertToResponse({
+      data: {},
+      status: 500,
+      messageType: 'ERROR',
+      messageText: 'Something went wrong',
+    }));
+  }
+});
+
+
+
 
 
 export default router;

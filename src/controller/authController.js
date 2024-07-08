@@ -32,7 +32,6 @@ router.get('/google',passport.authenticate('google', { scope: ['profile', 'email
 router.get('/google/callback', passport.authenticate('google', { successRedirect:`${clientUri}/`, failureRedirect: `${clientUri}/` }));
 
 router.get('/google/profile', (req, res) => {
-  console.log('Inside profile route' , req.user);
   if (req.user) {
     return  res.json(convertToResponse({data:{userData:req?.user?.userData,accessToken: req?.user?.accessToken , profilePic:req.user.profilePic},status:200,messageType:'success' , messageText:'User Logged-in'})); 
   }
@@ -49,14 +48,12 @@ router.post("/signup", async (req, res) => {
     const existingUser = await user.findOne({ email: email });
 
     if (existingUser) {
-      console.log(convertToResponse({data:{},status:400,messageType:'error' , messageText:'User already exists'}));
       return res.json(convertToResponse({data:{},status:400,messageType:'error' , messageText:'User already exists'}));
     }
 
     const otp = generateRandomNumber();
     const verificationExpiryTime = getCurrentTime(30);
 
-    console.log(otp, verificationExpiryTime, name, email, mobile, newPassword);
 
     const newUser = new user({
       name,
@@ -78,7 +75,6 @@ router.post("/signup", async (req, res) => {
       text: `Welcome to Merizameen. Here is your verification OTP: ${otp}. It will expire in 30 minutes.`,
     });
 
-    console.log(savedUser, emailResult);
     return res.status(200).json(convertToResponse({data:{id: savedUser.id},status:200,messageType:'success' , messageText:verifyEmail}));
   } catch (error) {
     console.error(error);
@@ -120,10 +116,8 @@ router.post("/verify", async (req, res) => {
 router.post("/google/logout", (req, res) => {
   req.logout(function (error) {
     if (error) {
-      console.log(error);
       return next(error)
     } else {
-      console.log("logout google");
       res.redirect(`${clientUri}/`);
     }
   });
@@ -158,7 +152,6 @@ router.post("/login", async (req, res) => {
       .json(
         convertToResponse({data:{accessToken, userData},status:200,messageType:'success' , messageText:loginSuccessfully})      );
   } catch (error) {
-    console.log(error);
     return res.json(
       convertToResponse({data:{},status:500,messageType:'error' , messageText:internalServerError}));
   }
@@ -180,7 +173,6 @@ router.post("/logout", async (req, res) => {
     }
 
     const token = await userToken.findOneAndDelete({ token: reqToken });
-    console.log(token);
     if (!token) {
       return res.status(200).json(
         convertToResponse({data:{},status:200,messageType:'success' , messageText:'logged-out'}));
@@ -188,7 +180,6 @@ router.post("/logout", async (req, res) => {
     res.status(200).json(convertToResponse({data:{},status:200,messageType:'success' , messageText:'logged-out'}));
    
   } catch (err) {
-    console.log(err);
     res.json(
       convertToResponse({data:{},status:500,messageType:'error' , messageText:internalServerError}));
   }
@@ -197,7 +188,6 @@ router.post("/logout", async (req, res) => {
 router.post("/refreshToken", async (req, res) => {
   verifyRefreshToken(req.body.refreshToken)
     .then((tokenDetails) => {
-      console.log(tokenDetails);
       const payload = { _id: tokenDetails._id, roles: tokenDetails.roles };
       const accessToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
         expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_TIME,
@@ -209,7 +199,6 @@ router.post("/refreshToken", async (req, res) => {
     })
     .catch((err) => {
       res.json(err);
-      console.log(err);
     });
 });
 

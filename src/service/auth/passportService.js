@@ -15,7 +15,6 @@ passport.use(new GoogleStrategy.Strategy(
       scope:['profile','email']
     },
     async (accessToken, refreshToken, profile, done) => {
-        console.log("profile---->",profile);
       try {
         const existingUser = await user.findOne({ email:profile?.emails[0]?.value  });
         if (!existingUser) {

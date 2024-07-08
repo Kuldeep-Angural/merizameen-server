@@ -28,7 +28,6 @@ router.post('/addProperty', authentication,checkRoles(),upload.array('propertyIm
   const retrivedUser = await user.findById(userId);
 
  
-  console.log(retrivedUser);
   const newProperty  = new property({
         userId:userId,
         title:title||undefined,
@@ -109,14 +108,46 @@ router.post('/addProperty', authentication,checkRoles(),upload.array('propertyIm
 
 
 router.get('/allPropertys', async (req, res) => {
-  const properties=  await property.find();
-  res.json(convertToResponse({ 
-    data: properties, 
-    status: 200, 
-    messageType: 'Success', 
-    messageText: "" 
-  }));
-})
+  try {
+    const allUsers = await user?.find();
+    
+
+    const updateInactiveProperties = async (userId, limit) => {
+      const properties = await property.find({ userId });
+      const propertiesToUpdate = properties.slice(0, properties.length - limit);
+      const updatePromises = propertiesToUpdate.map(prop => property.findByIdAndUpdate(prop._id, { isActive: false }));
+      const data =await Promise.all(updatePromises);
+
+    };
+
+    const updateUserProperties = allUsers.map(async u => {
+      if (u.memberShip === 'free' && u.usage?.posts >= 2) {
+        await updateInactiveProperties(u._id, 2);
+      } else if (u.memberShip === 'paid' && u.usage?.posts >= 10) {
+        await updateInactiveProperties(u._id, 10);
+      }
+    });
+
+    await Promise.all(updateUserProperties);
+
+    const properties = await property.find({ isActive: true });
+
+    res.json(convertToResponse({ 
+      data: properties, 
+      status: 200, 
+      messageType: 'Success', 
+      messageText: "" 
+    }));
+  } catch (error) {
+    console.error("Error fetching properties:", error);
+    res.status(500).json(convertToResponse({
+      data: null,
+      status: 500,
+      messageType: 'Error',
+      messageText: "An error occurred while fetching properties."
+    }));
+  }
+});
 
 router.post('/likes', async (req, res) => {
   const user = JSON.parse(req.headers['appcontext']);

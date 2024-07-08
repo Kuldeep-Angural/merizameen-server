@@ -10,6 +10,7 @@ import authController from "../controller/authController.js";
 import postController from "../controller/postController.js";
 import userController from "../controller/userController.js";
 import { serverTest } from "../constants/serverTesting.js";
+import { authentication, checkRoles } from "../middelware/authenticate.js";
 
 dotenv.config();
 const app = express();
@@ -38,7 +39,7 @@ databaseConnector();
 app.get("/", (req, res) => res.send(serverTest));
 app.use("/api/auth", authController);
 app.use("/api/user", userController);
-app.use("/api/post", postController);
+app.use("/api/post",authentication,checkRoles(), postController);
 app.get("/api/", (req, res) => res.json({ message: `Server is running on port ${PORT}` }));
 
 // Start server

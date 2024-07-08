@@ -24,7 +24,6 @@ export const generateTokens = async (user) => {
         await new userToken({ userId: user._id, token: accessToken }).save();
         return { accessToken:accessToken };
     } catch (error) {
-        console.log(error);
         throw error;
     }
 };

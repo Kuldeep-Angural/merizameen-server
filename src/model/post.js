@@ -9,14 +9,14 @@ const propertySchema = new Schema({
   propertyType: { type: String, required: true, maxlength: 32 },
   postFor: { type: String, required: true, maxlength: 32 },
   location: {
-    type :Object,
+    type: Object,
     state: { type: String, required: true, maxlength: 328989 },
     city: { type: String, required: true, maxlength: 328989 },
     district: { type: String, required: true, maxlength: 328989 },
     pinCode: { type: String, required: true, maxlength: 328989 },
   },
   basicInfo: {
-    type :Object,
+    type: Object,
     bedRooms: { type: String, required: true, maxlength: 32 },
     bathRooms: { type: String, required: true, maxlength: 32 },
     totalArea: { type: String, required: true, maxlength: 32 },
@@ -24,7 +24,7 @@ const propertySchema = new Schema({
     ageOfProperty: { type: String, required: true, maxlength: 32 },
   },
   amenities: {
-    type :Object,
+    type: Object,
     carParking: { type: String, default: "N" },
     mainMaintenance: { type: String, default: "N" },
     vastuCompliant: { type: String, default: "N" },
@@ -34,7 +34,7 @@ const propertySchema = new Schema({
     clubHouse: { type: String, default: "N" },
   },
   landMarks: {
-    type:Object,
+    type: Object,
     hospital: { type: String, required: true, maxlength: 32 },
     bank: { type: String, required: true, maxlength: 32 },
     atm: { type: String, required: true, maxlength: 32 },
@@ -42,13 +42,20 @@ const propertySchema = new Schema({
     railway: { type: String, required: true, maxlength: 32 },
     airport: { type: String, required: true, maxlength: 32 },
   },
-  price:{
-    type:String,
-    required:false,
-    default:'not Disclosed'
+  price: {
+    type: String,
+    required: false,
+    default: "not Disclosed",
   },
-  isActive:{
+
+  isSold: {
     type: Boolean,
+    default: false,
+  },
+
+  isActive: {
+    type: Boolean,
+    default: true,
   },
   postedAt: { type: Date, default: Date.now },
 });
