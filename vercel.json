@@ -9,7 +9,7 @@
     "builds": [
         {
             "src": "./src/app/App.js",
-            "use": "@now/node"
+            "use": "@vercel/node"
         }
     ],
     "routes": [
