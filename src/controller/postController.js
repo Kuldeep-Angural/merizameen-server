@@ -149,6 +149,41 @@ router.get('/allPropertys', async (req, res) => {
   }
 });
 
+
+
+router.post('/getProperty', async (req, res) => {
+  try {
+
+    const p =await  property.findById(req?.body?.id);
+    if (p) {
+      res.status(200).json(convertToResponse({
+        data: p,
+        status: 200,
+        messageType: 'Success',
+        messageText: "Property."
+      }));
+    }else{
+
+      res.status(500).json(convertToResponse({
+        data: null,
+        status: 200,
+        messageType: 'Error',
+        messageText: "No Property Found."
+      }));
+    }
+  }
+  catch(error){
+    res.status(500).json(convertToResponse({
+      data: null,
+      status: 500,
+      messageType: 'Error',
+      messageText: "An error occurred while fetching properties."
+    }));
+  }
+})
+
+
+
 router.post('/likes', async (req, res) => {
   const user = JSON.parse(req.headers['appcontext']);
   const retrivedproperty = await property.findById(req?.body.id);
