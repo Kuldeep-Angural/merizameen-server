@@ -12,7 +12,7 @@ export const veriFyOtp = (otp) => {
           verify your email. It will expire in 30 minutes.<br></br>
           ${otp}
         </p>
-        <p>Stay connected and explore all that we have to offer!</p>
+        <p> Stay connected and explore all that we have to offer!</p>
       </div>
      <div style="text-align: center;">
       <p style="color: #555;">
