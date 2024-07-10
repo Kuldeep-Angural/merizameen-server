@@ -203,4 +203,42 @@ router.post('/likes', async (req, res) => {
     messageText: " Likes Property SuccessFully Likes Property Added into your Dashboard. " 
   }));
 })
+
+
+
+router.post('/deleteProperty', async (req, res) => {
+  try {
+    const retrievedProperty = await property.findById(req.body.id);
+
+    if (!retrievedProperty.isSold && retrievedProperty.isActive) {
+      res.json(convertToResponse({ 
+        data: {}, 
+        status: 200, 
+        messageType: 'Warning', 
+        messageText: "Please refrain from deleting this property immediately. Instead, mark it as sold first, and then proceed with deletion." 
+      }));
+    } else {
+      await property.findByIdAndDelete(retrievedProperty._id);
+
+      const updatedUser = await user.findByIdAndUpdate(retrievedProperty.userId, {
+        $inc: { 'usage.posts': -1 }
+      }, { new: true });
+
+      res.json(convertToResponse({
+        data: {},
+        status: 200,
+        messageType: 'Success',
+        messageText: 'Property deleted successfully.'
+      }));
+    }
+  } catch (error) {
+    res.status(500).json(convertToResponse({
+      data: {},
+      status: 500,
+      messageType: 'Error',
+      messageText: 'An error occurred while processing your request.'
+    }));
+  }
+});
+
 export default router;
