@@ -98,7 +98,7 @@ router.post('/addProperty', authentication,checkRoles(),upload.array('propertyIm
 
       await user.findByIdAndUpdate(userId,{
         usage:{
-          posts:retrivedUser?.usage?.posts+1
+          posts:Number(retrivedUser?.usage?.posts||0)+1
         }
       })
       
