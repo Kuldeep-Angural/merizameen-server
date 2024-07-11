@@ -44,6 +44,9 @@ export const generateRefreshToken = async (data) => {
             refreshToken:refreshToken,
             roles:data.roles,
             isVerified:true,
+            memberShip: {
+                type: 'Standard Access',
+              },
         })
        await  emailService({to:updated.email,subject:'welcome to merizameen',html:welcomeEmail({name:updated.name,email:updated.email})});
         return refreshToken;

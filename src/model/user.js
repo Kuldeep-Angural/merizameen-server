@@ -42,56 +42,65 @@ const userSchema = new Schema({
 
   createdAt: {
     type: Date,
+    default: Date.now,
   },
 
-  isGoogleUser:{
-    type :Boolean,
-    default:false,
+  isGoogleUser: {
+    type: Boolean,
+    default: false,
   },
 
-  googleId:{
-    type:String,
-    required:false
+  googleId: {
+    type: String,
+    required: false,
   },
 
-  profilePic:{
-    type:String,
-    required:false
+  profilePic: {
+    type: String,
+    required: false,
   },
 
-  verificationCode:{
-    type :Number,
-    max:99989798,
+  verificationCode: {
+    type: Number,
+    max: 99989798,
   },
 
   verificationExpiryTime: {
-    type:String,
-    required:false
+    type: String,
+    required: false,
   },
 
-  isVerified:{
-    type:Boolean,
-    default:false
+  isVerified: {
+    type: Boolean,
+    default: false,
   },
 
   updatedAt: {
     type: Date,
-    default: Date.now(),
+    default: Date.now,
   },
 
-  memberShip:{
-    type : String,
-    default:'free',
+  memberShip: {
+    type: {
+      type: String,
+      default: 'Standard Access',
+    },
+    startDate: {
+      type: Date,
+      required: false,
+    },
+    endDate: {
+      type: Date,
+      required: false,
+    }
   },
 
-  usage : {
-    type:Object,
-      posts:{
-        type:Number,
-        default:0,
-      }
+  usage: {
+    posts: {
+      type: Number,
+      default: 0,
+    }
   }
-  
 });
 
 export default mongoose.model("user", userSchema);

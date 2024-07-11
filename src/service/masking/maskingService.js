@@ -1,25 +1,25 @@
 const MaskingService = {
 
-    EMAIL: (emailData: string) => {
+    EMAIL: (emailData) => {
       return emailData.replace(/(\w)(.*?)@(.*)/g,
         (match, firstLetter, emailId, domain) => {
           return firstLetter + 'x'.repeat(emailId.length) + '@' + domain;
         });
       },
   
-      NAME: (data: string) => {
+      NAME: (data) => {
         return data.replace(/(?<=.)./g, 'x');
       },
   
-      PHONE: (data: string) => {
+      PHONE: (data) => {
         return data.replace(/.(?=.{4})/g, 'x');
       },
   
-      ZIP: (data: string) => {
+      ZIP: (data) => {
         return data.replace(/./g, 'x');
       },
   
-      ADDRESS: (data: string) => {
+      ADDRESS: (data) => {
         return 'xxxxxx'
       }
   
