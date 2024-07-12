@@ -50,7 +50,7 @@ export const authentication = async (req, res, next) => {
 export const checkRoles = () => {
     return (req, res, next) => {
         const user = req?.user;
-        console.log(user.roles);
+        console.log(user);
         if (user && (user.roles[0]==='user' || user.roles[0] ==='owner')) {
             next();
         } else {

@@ -228,14 +228,12 @@ router.post("/changePassword", async (req, res) => {
 });
 
 router.delete("/delete", async (req, res) => {
+  const { email, id } = req.body;
   try {
-    const { email, id } = req.body;
-
     if (id) {
       await User.findByIdAndDelete(id);
       return res.json({ message: accountDeleted });
     }
-
     if (email) {
       const user = await User.findOne({ email });
 
@@ -253,172 +251,106 @@ router.delete("/delete", async (req, res) => {
 });
 
 router.get("/getUserLikes", async (req, res) => {
-  try {
-    const user = JSON.parse(req.headers["appcontext"]);
-    const userLikes = await propertyLikes.find({ userId: user._id });
-    const allLikedPropertiesPromises = userLikes.map((element) =>
-      property.findById(element?.property)
-    );
-    const allLikedProperties = await Promise.all(allLikedPropertiesPromises);
-
-    const allLikedPropertiesWithUserLikes = allLikedProperties.map(
-      (property, index) => {
-        return {
-          ...property.toObject(), // Convert MongoDB document to a plain JavaScript object
-          userLikes: userLikes[index],
-        };
+    const userData = JSON.parse(req.headers["appcontext"]);
+    try {
+      const likes = await propertyLikes.find({ userId: userData._id });
+      if (likes?.length>0) {
+        const propertyIds = likes.map(like => like.property);
+        const properties = await property.find({ _id: { $in: propertyIds } });
+    
+        const results = likes.map(like => {
+          const likedProperty = properties.find(prop => prop._id.equals(like.property));
+          return {
+            likeId: like._id,
+            userId: like.userId,
+            sellerId: like.sellerId,
+            likedAt: like.likedAt,
+            property: likedProperty
+          };
+        });
+        res.json( convertToResponse({ data: results, status: 200, messageType: "SUCCESS", messageText: "Here is The Likes",}))
+      }else{
+      res.json(convertToResponse({ data: {},status: 200,messageType: "SUCCESS",messageText: 'No Data Found',}));
       }
-    );
-
-    if (!allLikedPropertiesWithUserLikes) {
-      res.json(
-        convertToResponse({
-          data: {},
-          status: 200,
-          messageType: "Success",
-          messageText: "No Likes",
-        })
-      );
-    } else {
-      res.json(
-        convertToResponse({
-          data: allLikedPropertiesWithUserLikes,
-          status: 200,
-          messageType: "Success",
-          messageText: "Total Likes",
-        })
-      );
+    } catch (error) {
+      res.json(convertToResponse({ data: {},status: 500,messageType: "ERROR",messageText: someThingWentWrong,}));
     }
-  } catch (error) {
-    res.json(
-      convertToResponse({
-        data: {},
-        status: 500,
-        messageType: "ERROR",
-        messageText: someThingWentWrong,
-      })
-    );
-  }
 });
 
 router.get("/getSellerLikes", async (req, res) => {
+  const userData = JSON.parse(req.headers["appcontext"]);
   try {
-    const userData = JSON.parse(req.headers["appcontext"]);
-    const sellerLikes = await propertyLikes.find({ sellerId: userData._id });
-
-    const users = await user.find({ _id: sellerLikes?.userId });
-    const allLikedPropertiesPromises = sellerLikes.map((element) =>
-      property.findById(element?.property)
-    );
-
-    const allLikedProperties = await Promise.all(allLikedPropertiesPromises);
-    const allLikedPropertiesWithsellerLikes = allLikedProperties.map(
-      (property, index) => {
+    const likes = await propertyLikes.find({ sellerId: userData._id });
+    if (likes?.length>0) {
+      const propertyIds = likes.map(like => like.property);
+      const properties = await property.find({ _id: { $in: propertyIds } });
+  
+      const results = likes.map(like => {
+        const likedProperty = properties.find(prop => prop._id.equals(like.property));
         return {
-          ...property.toObject(),
-          sellerLikes: sellerLikes[index],
+          likeId: like._id,
+          userId: like.userId,
+          sellerId: like.sellerId,
+          userName: like.userName,
+          likedAt: like.likedAt,
+          property: likedProperty
         };
-      }
-    );
-    if (!allLikedPropertiesWithsellerLikes) {
-      res.json(
-        convertToResponse({
-          data: {},
-          status: 200,
-          messageType: "Success",
-          messageText: "No Likes",
-        })
-      );
-    } else {
-      res.json(
-        convertToResponse({
-          data: allLikedPropertiesWithsellerLikes,
-          status: 200,
-          messageType: "Success",
-          messageText: "Total Likes",
-        })
-      );
+      });
+      res.json( convertToResponse({ data: results, status: 200, messageType: "SUCCESS", messageText: "Here is The Likes",}))
+    }else{
+    res.json(convertToResponse({ data: {},status: 200,messageType: "SUCCESS",messageText: 'No Data Found',}));
     }
   } catch (error) {
-    res.json(
-      convertToResponse({
-        data: {},
-        status: 500,
-        messageType: "ERROR",
-        messageText: someThingWentWrong,
-      })
-    );
+    res.json(convertToResponse({ data: {},status: 500,messageType: "ERROR",messageText: someThingWentWrong,}));
   }
 });
 
+
 router.get("/getPostedProperties", async (req, res) => {
+  const user = JSON.parse(req.headers["appcontext"]);
+  console.log(user);
   try {
-    const user = JSON.parse(req.headers["appcontext"]);
     const postedProperty = await property.find({ userId: user._id });
-    if (!postedProperty) {
-      res.json(
-        convertToResponse({
-          data: {},
-          status: 200,
-          messageType: "Success",
-          messageText: "No Property Posted Yet",
-        })
-      );
-    } else {
-      res.json(
-        convertToResponse({
-          data: postedProperty,
-          status: 200,
-          messageType: "Success",
-          messageText: "Total Properties",
-        })
-      );
+    if (postedProperty) {
+      res.json(convertToResponse({ data: postedProperty, status: 200, messageType: "Success", messageText: "Total Properties",}))
+    } else{
+      res.json( convertToResponse({ data: {}, status: 200, messageType: "Success",messageText: "No Property Posted Yet",}));
     }
   } catch (error) {
-    res.json(
-      convertToResponse({
-        data: {},
-        status: 500,
-        messageType: "ERROR",
-        messageText: someThingWentWrong,
-      })
-    );
+    res.json( convertToResponse({ data: {},status: 500, messageType: "ERROR",messageText: someThingWentWrong}));
   }
 });
 
 router.post("/markSoldProperty", async (req, res) => {
   const { propertyId } = req.body;
-
   try {
-    await property.findByIdAndUpdate(
-      { _id: propertyId },
-      {
-        isSold: true,
-        isActive: false,
-      }
-    );
-
-    return res.json(
-      convertToResponse({
-        data: {},
-        status: 200,
-        messageType: "Success",
-        messageText: "Property set to be sold",
-      })
-    );
+    await property.findByIdAndUpdate( { _id: propertyId }, {isSold: true,isActive: false,} );
+    return res.json( convertToResponse({data: {}, status: 200, messageType: "Success", messageText: "Property set to be sold",}) );
   } catch (error) {
-    console.error("Error:", error);
-
-    return res.json(
-      convertToResponse({
-        data: {},
-        status: 500,
-        messageType: "ERROR",
-        messageText: "Something went wrong",
-      })
-    );
+    return res.json( convertToResponse({ data: {}, status: 500, messageType: "ERROR", messageText: someThingWentWrong,}));
   }
 });
+
+router.post("/setActiveProperty", async (req, res) => {
+  const { propertyId } = req.body;
+  const userData = JSON.parse(req.headers["appcontext"]);
+
+  try {
+    const usersD = await user.findById(userData._id);
+    const activeProperties = await property.find({ userId: userData._id, isActive: true });
+    if(usersD.memberShip.type==='Standard Access' && activeProperties?.length<2){
+        await property.findByIdAndUpdate( { _id: propertyId }, {isActive:true} );
+    }else if (usersD.memberShip.type==='Premium Access' && activeProperties?.length<10) {
+      await property.findByIdAndUpdate( { _id: propertyId }, {isActive:true} );
+    }else{
+    return res.json( convertToResponse({data: {}, status: 200, messageType: "ERROR", messageText: "Property Active / Post Limit Reached as per your Membership.",}) );
+    }
+    return res.json( convertToResponse({data: {}, status: 200, messageType: "Success", messageText: "Property set to be Active",}) );
+  } catch (error) {
+    return res.json( convertToResponse({ data: {}, status: 500, messageType: "ERROR", messageText: someThingWentWrong,}));
+  }
+});
+
 
 router.post("/buyPlan", async (req, res) => {
   const user = JSON.parse(req.headers["appcontext"]);

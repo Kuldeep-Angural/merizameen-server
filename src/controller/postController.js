@@ -72,36 +72,10 @@ router.post(
   checkRoles(),
   upload.array("propertyImages"),
   async (req, res) => {
-    const {
-      mainImage,
-      propertyImages,
-      basicInfo,
-      landMarks,
-      amenities,
-      location,
-    } = req?.body || {};
+    const { mainImage,propertyImages,basicInfo,landMarks,amenities,location,} = req?.body || {};
     const { state, city, district, pinCode } = location || {};
-    const {
-      propertyType,
-      bedRoom,
-      bathRoom,
-      totalArea,
-      carpetArea,
-      propertyAge,
-      description,
-      title,
-      price,
-      postFor,
-    } = basicInfo || {};
-    const {
-      carParking,
-      maintenance,
-      vastuCompliant,
-      gym,
-      park,
-      powerBackup,
-      clubHouse,
-    } = amenities || {};
+    const { propertyType,bedRoom,bathRoom,totalArea,carpetArea,propertyAge,description,title,price,postFor,} = basicInfo || {};
+    const { carParking,maintenance,vastuCompliant,gym,park,powerBackup,clubHouse,} = amenities || {};
     const { hospital, atm, bank, railway, metro, airport } = landMarks || {};
     let index = 0;
     const userId = req?.user?._id;
@@ -149,14 +123,14 @@ router.post(
     });
 
     if (
-      retrivedUser?.memberShip === "Standard Access" &&
+      retrivedUser?.memberShip.type === "Standard Access" &&
       retrivedUser?.usage?.posts >= 2
     ) {
       return res
         .status(200)
         .json({ message: "You have Free Account you only add 2 properties" });
     } else if (
-      retrivedUser?.memberShip === "seller" &&
+      retrivedUser?.memberShip.type === "seller" &&
       retrivedUser?.usage?.posts >= 10
     ) {
       return res.status(200).json({
@@ -344,16 +318,10 @@ router.post("/deleteProperty", async (req, res) => {
     const retrievedProperty = await property.findById(req.body.id);
 
     if (!retrievedProperty.isSold && retrievedProperty.isActive) {
-      res.json(
-        convertToResponse({
-          data: {},
-          status: 200,
-          messageType: "Warning",
-          messageText:
-            "Please refrain from deleting this property immediately. Instead, mark it as sold first, and then proceed with deletion.",
-        })
-      );
+      res.json( convertToResponse({ data: {}, status: 200, messageType: "Warning", messageText: "Please refrain from deleting this property immediately. Instead, mark it as sold first, and then proceed with deletion.",}));
     } else {
+      const likes = await propertyLikes.find({property:retrievedProperty._id});
+      likes.map(async (l)=>{ await propertyLikes.findByIdAndDelete(l._id) })
       await property.findByIdAndDelete(retrievedProperty._id);
 
       const updatedUser = await user.findByIdAndUpdate(
@@ -363,25 +331,10 @@ router.post("/deleteProperty", async (req, res) => {
         },
         { new: true }
       );
-
-      res.json(
-        convertToResponse({
-          data: {},
-          status: 200,
-          messageType: "Success",
-          messageText: "Property deleted successfully.",
-        })
-      );
+      res.json( convertToResponse({ data: {}, status: 200, messageType: "Success", messageText: "Property deleted successfully.",}));
     }
   } catch (error) {
-    res.status(500).json(
-      convertToResponse({
-        data: {},
-        status: 500,
-        messageType: "Error",
-        messageText: "An error occurred while processing your request.",
-      })
-    );
+    res.status(500).json( convertToResponse({ data: {}, status: 500, messageType: "Error",messageText: "An error occurred while processing your request.",}) );
   }
 });
 
