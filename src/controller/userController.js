@@ -113,7 +113,7 @@ router.post("/updateUser", async (req, res) => {
         data: updatedUser,
         status: 200,
         messageType: "success",
-        messageText: "Details Updated Successfully",
+        messageText: "Profile Updated Successfully",
       })
     );
   } catch (error) {
