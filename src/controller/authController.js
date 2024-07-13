@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import express from "express";
 import {generateRefreshToken,generateTokens,verifyRefreshToken,} from "../service/auth/authService.js";
 import {convertToResponse,decrypt,encrypt,generatePassword,generateRandomNumber,getCurrentTime,} from "../util/util.js";
-import {accessDenied,accessTokenCreatedSuccessfully,internalServerError,invalidPassword,  loginSuccessfully,logout,registrationSuccessFully,userAlreadyExist,userNotFound,verifyEmail,} from "../constants/message.js";
+import {accessDenied,accessTokenCreatedSuccessfully,internalServerError,invalidPassword,  loginSuccessfully,logout,registrationSuccessFully,someThingWentWrong,userAlreadyExist,userNotFound,verifyEmail,} from "../constants/message.js";
 import userToken from "../model/userToken.js";
 import { emailService } from "../service/email/emailService.js";
 import { veriFyOtp } from "../template/emailVerifyTemplate.js";
@@ -26,38 +26,58 @@ export const decodeObject = (obj) => {
 
 
 
-router.get('/google',passport.authenticate('google', { scope: ['profile', 'email'] })
-);
+async function handleExistingGoogleUser(userRecord, res) {
+  const { accessToken } = await generateTokens(userRecord);
+  const userData = btoa(`${userRecord._id}:${userRecord.name}:${userRecord.email}:${userRecord.mobile}:${userRecord.roles}`);
+  return res.status(200).json(convertToResponse({
+    data: { accessToken, userData },
+    status: 200,
+    messageType: 'success',
+    messageText: loginSuccessfully
+  }));
+}
 
-router.get('/google/callback', passport.authenticate('google', { successRedirect:`${clientUri}/`, failureRedirect: `${clientUri}/` }));
+async function createNewGoogleUser({ name, email, password, jti, picture }) {
+  return new user({
+    name,
+    email,
+    password,
+    isGoogleUser: true,
+    googleId: jti,
+    profilePic: picture,
+    isVerified: true,
+  });
+}
 
-router.get('/google/profile', (req, res) => {
-  if (req.user) {
-    return  res.json(convertToResponse({data:{userData:req?.user?.userData,accessToken: req?.user?.accessToken , profilePic:req.user.profilePic},status:200,messageType:'success' , messageText:'User Logged-in'})); 
-  }
-  else{
-    res.json(convertToResponse({data:{},status:400,messageType:'error' , messageText:'user already have an Account please use your email or password'}))
+
+
+router.post('/googleLogin', async (req, res) => {
+  const { credentials } = req.body;
+  try {
+    const decoded = await jwt.decode(credentials);
+    const password = generatePassword(16);
+    const { name, picture, email, jti } = decoded || {};
+
+    const existingUser = await user.findOne({ email });
+
+    if (existingUser && existingUser?.isGoogleUser) {
+      return await handleExistingGoogleUser(existingUser, res);
+    } else if (existingUser?.isVerified && existingUser?.verificationCode && !existingUser?.isGoogleUser ) {
+      return res.status(200).json(convertToResponse({ data: {}, status: 200, messageType: 'error', messageText: 'Something went wrong, or the user is already registered with the same email using local sign-in. Please use your password to log in. If you don’t remember it, please reset your password or contact our customer support team.' }));
+    } else {
+      const newUser = await createNewGoogleUser({ name, email, password, jti, picture });
+      const savedUser = await newUser.save();
+      const retrievedUser = await user.findById(savedUser._id);
+      const refreshToken = await generateRefreshToken(retrievedUser);
+      return await handleExistingGoogleUser(retrievedUser, res);
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(convertToResponse({ data: { error }, status: 500, messageType: 'error', messageText: internalServerError }));
   }
 });
 
 
-router.post('/googleLogin',async (req , res)=>{
-  const credentials = req.body.credential;
-  try {
-    const decoded = jwt.decode(credentials, { complete: true });
-    const generatedPassword = generatePassword(16);
-    const newPassword = encrypt(password);
-    console.log(decoded , newPassword);
-    const existingUser = await user.findOne({ email: email });
-
-    if (existingUser) {
-      return res.json(convertToResponse({data:{},status:400,messageType:'error' , messageText:'User already exists'}));
-    }
-  }
-  catch(error){
-
-  }
-})
 
 
 router.post("/signup", async (req, res) => {
