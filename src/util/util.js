@@ -57,3 +57,22 @@ export const convertToResponse = ({data,messageText , messageType , status}) => 
     }
     ;
 }
+
+export const  generatePassword = (length) =>{
+  const letters = 5;
+  const numbers = 3;
+  const either = 2;
+  const chars = [
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz', // letters
+    '0123456789', // numbers
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789', // either
+  ];
+
+  return [letters, numbers, either].map((len, i) =>{
+    return Array(len).fill(chars[i]).map((x) => {
+      return x[Math.floor(Math.random() * x.length)];
+    }).join('');
+  }).concat().join('').split('').sort(() => {
+    return 0.5 - Math.random();
+  }).join('')
+};
