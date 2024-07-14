@@ -268,7 +268,26 @@ router.get("/getUserLikes", async (req, res) => {
             property: likedProperty
           };
         });
-        res.json( convertToResponse({ data: results, status: 200, messageType: "SUCCESS", messageText: "Here is The Likes",}))
+
+    
+
+      const uniqueLikes = [];
+
+const userPropertySet = new Set();
+
+results.forEach(like => {
+  const { userId, property: { _id: propertyId } } = like;
+  const userPropertyKey = `${userId}_${propertyId}`;
+  
+  if (!userPropertySet.has(userPropertyKey) && userId !== like.sellerId) {
+    userPropertySet.add(userPropertyKey);
+    uniqueLikes.push(like);
+  }
+});
+
+
+      console.log(uniqueLikes);
+        res.json( convertToResponse({ data: uniqueLikes, status: 200, messageType: "SUCCESS", messageText: "Here is The Likes",}))
       }else{
       res.json(convertToResponse({ data: {},status: 200,messageType: "SUCCESS",messageText: 'No Data Found',}));
       }
@@ -296,7 +315,21 @@ router.get("/getSellerLikes", async (req, res) => {
           property: likedProperty
         };
       });
-      res.json( convertToResponse({ data: results, status: 200, messageType: "SUCCESS", messageText: "Here is The Likes",}))
+
+      const uniqueLikes = [];
+
+      const userPropertySet = new Set();
+      
+      results.forEach(like => {
+        const { userId, property: { _id: propertyId } } = like;
+        const userPropertyKey = `${userId}_${propertyId}`;
+        
+        if (!userPropertySet.has(userPropertyKey) && userId !== like.sellerId) {
+          userPropertySet.add(userPropertyKey);
+          uniqueLikes.push(like);
+        }
+      });
+      res.json( convertToResponse({ data: uniqueLikes, status: 200, messageType: "SUCCESS", messageText: "Here is The Likes",}))
     }else{
     res.json(convertToResponse({ data: {},status: 200,messageType: "SUCCESS",messageText: 'No Data Found',}));
     }
