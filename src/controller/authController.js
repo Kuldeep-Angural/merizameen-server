@@ -1,14 +1,13 @@
-import user from "../model/user.js";
-import jwt from "jsonwebtoken";
 import express from "express";
-import {generateRefreshToken,generateTokens,verifyRefreshToken,} from "../service/auth/authService.js";
-import {convertToResponse,decrypt,encrypt,generatePassword,generateRandomNumber,getCurrentTime,} from "../util/util.js";
-import {accessDenied,accessTokenCreatedSuccessfully,internalServerError,invalidPassword,  loginSuccessfully,logout,registrationSuccessFully,someThingWentWrong,userAlreadyExist,userNotFound,verifyEmail,} from "../constants/message.js";
+import jwt from "jsonwebtoken";
+import { accessDenied, accessTokenCreatedSuccessfully, internalServerError, invalidPassword, loginSuccessfully, userNotFound, verifyEmail } from "../constants/message.js";
+import user from "../model/user.js";
 import userToken from "../model/userToken.js";
+import { generateRefreshToken, generateTokens, verifyRefreshToken, } from "../service/auth/authService.js";
 import { emailService } from "../service/email/emailService.js";
 import { veriFyOtp } from "../template/emailVerifyTemplate.js";
-import passport from '../service/auth/passportService.js';
-import cors from 'cors';
+import { convertToResponse, decrypt, encrypt, generatePassword, generateRandomNumber, getCurrentTime, } from "../util/util.js";
+
 const router = express.Router();
 const clientUri = process.env.CLIENT_URL;
 
@@ -167,32 +166,23 @@ router.post("/google/logout", (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = decodeObject(req.body);
-    const userRecord = await user.findOne({ email });
-    if (!userRecord) {
-      return res.json(
-        convertToResponse({data:{},status:400,messageType:'error' , messageText:userNotFound}));
-    }
-    const decryptedPassword = decrypt(userRecord.password);
-    if (password !== decryptedPassword) {
-      return res.json(
-        convertToResponse({data:{},status:400,messageType:'error' , messageText:invalidPassword})       );
-    }
-    if (!userRecord.isVerified) {
-      return res.json(
-        convertToResponse({data:{},status:400,messageType:'error' , messageText:"Not Verified please contact to our customer support "}));
-    }
-    const { accessToken } = await generateTokens(userRecord);
-    const userData = btoa(
-      `${userRecord._id}:${userRecord.name}:${userRecord.email}:${userRecord.mobile}:${userRecord.roles}`
-    );
+    const userRecord = await user.findOne({email});
+    const decryptedPassword =  decrypt(userRecord?.password);
+    console.log(userRecord , decryptedPassword);
+    if (!userRecord)  return res.json(convertToResponse({data:{},status:400,messageType:'error' , messageText:userNotFound}));
+  
+    if (password !== decryptedPassword)  return res.json( convertToResponse({data:{},status:400,messageType:'error' , messageText:invalidPassword}));
 
-    return res
-      .status(200)
-      .json(
-        convertToResponse({data:{accessToken, userData},status:200,messageType:'success' , messageText:loginSuccessfully})      );
+    if (!userRecord.isVerified) return res.json(convertToResponse({data:{},status:400,messageType:'error' , messageText:"Not Verified please contact to our customer support "}));
+    
+
+    const { accessToken } = await generateTokens(userRecord);
+
+    const userData = btoa( `${userRecord._id}:${userRecord.name}:${userRecord.email}:${userRecord.mobile}:${userRecord.roles}`);
+    return res.status(200).json(convertToResponse({data:{accessToken, userData},status:200,messageType:'success' , messageText:loginSuccessfully})      );
   } catch (error) {
-    return res.json(
-      convertToResponse({data:{},status:500,messageType:'error' , messageText:internalServerError}));
+    console.log(error);
+    return res.json( convertToResponse({data:{},status:500,messageType:'error' , messageText:internalServerError}));
   }
 });
 

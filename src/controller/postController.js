@@ -7,57 +7,11 @@ import { uploadOnCLoudnary } from "../service/cloudnary/cloudnary.js";
 import property from "../model/post.js";
 import propertyLikes from "../model/propertyLikes.js";
 import user from "../model/user.js";
-import MaskingService from "../service/masking/maskingService.js";
 
 const router = express.Router();
 const upload = multer({ storage });
 
-const maskLocation = (properties) => {
-  let {
-    _id,
-    userId,
-    description,
-    propertyImages,
-    title,
-    propertyType,
-    postFor,
-    location,
-    basicInfo,
-    amenities,
-    landMarks,
-    price,
-    isSold,
-    isActive,
-    postedAt,
-    __v,
-    mainImage,
-  } = properties;
 
-  return {
-    _id,
-    userId,
-    description,
-    propertyImages,
-    title,
-    propertyType,
-    postFor,
-    location: {
-      city: "*****",
-      state: "*****",
-      district: "*****",
-      pinCode: "*****",
-    },
-    basicInfo,
-    amenities,
-    landMarks,
-    price,
-    isSold,
-    isActive,
-    postedAt,
-    __v,
-    mainImage,
-  };
-};
 router.post(
   "/testValidated",
   authentication,
@@ -247,9 +201,7 @@ router.post("/getProperty", async (req, res) => {
   try {
     const p = await property.findById(req?.body?.id);
     if (p) {
-      const currentUser = await user.findById(data._id);
-      if (currentUser && currentUser?.memberShip?.type === "Standard Access") {
-        const maskedProperties = maskLocation(p);
+        const maskedProperties = p;
         res.status(200).json(
           convertToResponse({
             data: maskedProperties,
@@ -268,16 +220,6 @@ router.post("/getProperty", async (req, res) => {
           })
         );
       }
-    } else {
-      res.status(500).json(
-        convertToResponse({
-          data: null,
-          status: 200,
-          messageType: "Error",
-          messageText: "No Property Found.",
-        })
-      );
-    }
   } catch (error) {
     res.status(500).json(
       convertToResponse({

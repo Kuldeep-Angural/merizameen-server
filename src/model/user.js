@@ -22,12 +22,7 @@ const userSchema = new Schema({
     max: 32,
   },
 
-  password: {
-    type: String,
-    max: 1022,
-    min: 8,
-    required: true,
-  },
+
 
   roles: {
     type: [String],
@@ -80,27 +75,6 @@ const userSchema = new Schema({
     default: Date.now,
   },
 
-  memberShip: {
-    type: {
-      type: String,
-      default: 'Standard Access',
-    },
-    startDate: {
-      type: Date,
-      required: false,
-    },
-    endDate: {
-      type: Date,
-      required: false,
-    }
-  },
-
-  usage: {
-    posts: {
-      type: Number,
-      default: 0,
-    }
-  }
 });
 
 export default mongoose.model("user", userSchema);

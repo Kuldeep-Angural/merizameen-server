@@ -137,44 +137,23 @@ router.post("/otpRequestForPasswordChange", async (req, res) => {
     const existUser = await User.findOne({ email });
 
     if (!existUser) {
-      return res.json(
-        convertToResponse({
-          data: {},
-          status: 400,
-          messageType: "error",
-          messageText: userNotFound,
-        })
-      );
+      return res.json(  convertToResponse({ data: {},status: 400,messageType: "error",messageText: userNotFound,}));
+    } else {
+      if (existUser.isGoogleUser) {
+        return res.json( convertToResponse({ data: { id: existUser.id },status: 201,messageType: "error",messageText: 'Your email is registered with Google Login. Please use Google Login instead of "Forgot Password ."',}) );
+      } else {
+        await User.findByIdAndUpdate(existUser._id, {...existUser.toObject(),verificationCode: otp,verificationExpiryTime,});
+        await sendForgotPasswordEmail(existUser, otp);
+        return res.json( convertToResponse({data: { id: existUser.id },status: 200,messageType: "success",messageText: passwordResetOtpMail,}));
+      }
     }
-
-    await User.findByIdAndUpdate(existUser._id, {
-      ...existUser.toObject(),
-      verificationCode: otp,
-      verificationExpiryTime,
-    });
-
-    await sendForgotPasswordEmail(existUser, otp);
-
-    return res.json(
-      convertToResponse({
-        data: { id: existUser.id },
-        status: 200,
-        messageType: "success",
-        messageText: passwordResetOtpMail,
-      })
-    );
   } catch (error) {
     console.error("Error in OTP request for password change:", error);
-    return res.json(
-      convertToResponse({
-        data: {},
-        status: 500,
-        messageType: "error",
-        messageText: internalServerError,
-      })
-    );
+    return res.json( convertToResponse({data: {},status: 500,messageType: "error",messageText: internalServerError,}) );
   }
 });
+
+
 
 router.post("/changePassword", async (req, res) => {
   try {
@@ -183,47 +162,20 @@ router.post("/changePassword", async (req, res) => {
 
     const existingUser = await User.findById(id);
 
-    if (
-      existingUser &&
-      Number(otp) === existingUser.verificationCode &&
-      existingUser.verificationExpiryTime >= getCurrentTime()
-    ) {
+    if ( existingUser && Number(otp) === existingUser.verificationCode && existingUser.verificationExpiryTime >= getCurrentTime()) {
       await User.findByIdAndUpdate(id, {
         ...existingUser.toObject(),
         password: newPassword,
         isVerified: true,
       });
 
-      return res
-        .status(200)
-        .json(
-          convertToResponse({
-            data: {},
-            status: 200,
-            messageType: "success",
-            messageText: passwordUpdate,
-          })
-        );
+      return res.status(200).json(convertToResponse({data: {},status: 200,messageType: "success",messageText: passwordUpdate,})  );
     } else {
-      return res.json(
-        convertToResponse({
-          data: {},
-          status: 400,
-          messageType: "error",
-          messageText: invalidOrExpireOtp,
-        })
-      );
+      return res.json( convertToResponse({data: {},status: 400,messageType: "error",messageText: invalidOrExpireOtp,}));
     }
   } catch (error) {
     console.error("Error in changing password:", error);
-    return res.json(
-      convertToResponse({
-        data: {},
-        status: 500,
-        messageType: "error",
-        messageText: someThingWentWrong,
-      })
-    );
+    return res.json( convertToResponse({data: {},status: 500,messageType: "error",messageText: someThingWentWrong,}) );
   }
 });
 
@@ -251,59 +203,59 @@ router.delete("/delete", async (req, res) => {
 });
 
 router.get("/getUserLikes", async (req, res) => {
-    const userData = JSON.parse(req.headers["appcontext"]);
-    try {
-      const likes = await propertyLikes.find({ userId: userData._id });
-      if (likes?.length>0) {
-        const propertyIds = likes.map(like => like.property);
-        const properties = await property.find({ _id: { $in: propertyIds } });
-    
-        const results = likes.map(like => {
-          const likedProperty = properties.find(prop => prop._id.equals(like.property));
-          return {
-            likeId: like._id,
-            userId: like.userId,
-            sellerId: like.sellerId,
-            likedAt: like.likedAt,
-            property: likedProperty
-          };
-        });
+  const userData = JSON.parse(req.headers["appcontext"]);
+  try {
+    const likes = await propertyLikes.find({ userId: userData._id });
+    if (likes?.length > 0) {
+      const propertyIds = likes.map(like => like.property);
+      const properties = await property.find({ _id: { $in: propertyIds } });
 
-    
+      const results = likes.map(like => {
+        const likedProperty = properties.find(prop => prop._id.equals(like.property));
+        return {
+          likeId: like._id,
+          userId: like.userId,
+          sellerId: like.sellerId,
+          likedAt: like.likedAt,
+          property: likedProperty
+        };
+      });
+
+
 
       const uniqueLikes = [];
 
-const userPropertySet = new Set();
+      const userPropertySet = new Set();
 
-results.forEach(like => {
-  const { userId, property: { _id: propertyId } } = like;
-  const userPropertyKey = `${userId}_${propertyId}`;
-  
-  if (!userPropertySet.has(userPropertyKey) && userId !== like.sellerId) {
-    userPropertySet.add(userPropertyKey);
-    uniqueLikes.push(like);
-  }
-});
+      results.forEach(like => {
+        const { userId, property: { _id: propertyId } } = like;
+        const userPropertyKey = `${userId}_${propertyId}`;
+
+        if (!userPropertySet.has(userPropertyKey) && userId !== like.sellerId) {
+          userPropertySet.add(userPropertyKey);
+          uniqueLikes.push(like);
+        }
+      });
 
 
       console.log(uniqueLikes);
-        res.json( convertToResponse({ data: uniqueLikes, status: 200, messageType: "SUCCESS", messageText: "Here is The Likes",}))
-      }else{
-      res.json(convertToResponse({ data: {},status: 200,messageType: "SUCCESS",messageText: 'No Data Found',}));
-      }
-    } catch (error) {
-      res.json(convertToResponse({ data: {},status: 500,messageType: "ERROR",messageText: someThingWentWrong,}));
+      res.json(convertToResponse({ data: uniqueLikes, status: 200, messageType: "SUCCESS", messageText: "Here is The Likes", }))
+    } else {
+      res.json(convertToResponse({ data: {}, status: 200, messageType: "SUCCESS", messageText: 'No Data Found', }));
     }
+  } catch (error) {
+    res.json(convertToResponse({ data: {}, status: 500, messageType: "ERROR", messageText: someThingWentWrong, }));
+  }
 });
 
 router.get("/getSellerLikes", async (req, res) => {
   const userData = JSON.parse(req.headers["appcontext"]);
   try {
     const likes = await propertyLikes.find({ sellerId: userData._id });
-    if (likes?.length>0) {
+    if (likes?.length > 0) {
       const propertyIds = likes.map(like => like.property);
       const properties = await property.find({ _id: { $in: propertyIds } });
-  
+
       const results = likes.map(like => {
         const likedProperty = properties.find(prop => prop._id.equals(like.property));
         return {
@@ -319,22 +271,22 @@ router.get("/getSellerLikes", async (req, res) => {
       const uniqueLikes = [];
 
       const userPropertySet = new Set();
-      
+
       results.forEach(like => {
         const { userId, property: { _id: propertyId } } = like;
         const userPropertyKey = `${userId}_${propertyId}`;
-        
+
         if (!userPropertySet.has(userPropertyKey) && userId !== like.sellerId) {
           userPropertySet.add(userPropertyKey);
           uniqueLikes.push(like);
         }
       });
-      res.json( convertToResponse({ data: uniqueLikes, status: 200, messageType: "SUCCESS", messageText: "Here is The Likes",}))
-    }else{
-    res.json(convertToResponse({ data: {},status: 200,messageType: "SUCCESS",messageText: 'No Data Found',}));
+      res.json(convertToResponse({ data: uniqueLikes, status: 200, messageType: "SUCCESS", messageText: "Here is The Likes", }))
+    } else {
+      res.json(convertToResponse({ data: {}, status: 200, messageType: "SUCCESS", messageText: 'No Data Found', }));
     }
   } catch (error) {
-    res.json(convertToResponse({ data: {},status: 500,messageType: "ERROR",messageText: someThingWentWrong,}));
+    res.json(convertToResponse({ data: {}, status: 500, messageType: "ERROR", messageText: someThingWentWrong, }));
   }
 });
 
@@ -345,22 +297,22 @@ router.get("/getPostedProperties", async (req, res) => {
   try {
     const postedProperty = await property.find({ userId: user._id });
     if (postedProperty) {
-      res.json(convertToResponse({ data: postedProperty, status: 200, messageType: "Success", messageText: "Total Properties",}))
-    } else{
-      res.json( convertToResponse({ data: {}, status: 200, messageType: "Success",messageText: "No Property Posted Yet",}));
+      res.json(convertToResponse({ data: postedProperty, status: 200, messageType: "Success", messageText: "Total Properties", }))
+    } else {
+      res.json(convertToResponse({ data: {}, status: 200, messageType: "Success", messageText: "No Property Posted Yet", }));
     }
   } catch (error) {
-    res.json( convertToResponse({ data: {},status: 500, messageType: "ERROR",messageText: someThingWentWrong}));
+    res.json(convertToResponse({ data: {}, status: 500, messageType: "ERROR", messageText: someThingWentWrong }));
   }
 });
 
 router.post("/markSoldProperty", async (req, res) => {
   const { propertyId } = req.body;
   try {
-    await property.findByIdAndUpdate( { _id: propertyId }, {isSold: true,isActive: false,} );
-    return res.json( convertToResponse({data: {}, status: 200, messageType: "Success", messageText: "Property set to be sold",}) );
+    await property.findByIdAndUpdate({ _id: propertyId }, { isSold: true, isActive: false, });
+    return res.json(convertToResponse({ data: {}, status: 200, messageType: "Success", messageText: "Property set to be sold", }));
   } catch (error) {
-    return res.json( convertToResponse({ data: {}, status: 500, messageType: "ERROR", messageText: someThingWentWrong,}));
+    return res.json(convertToResponse({ data: {}, status: 500, messageType: "ERROR", messageText: someThingWentWrong, }));
   }
 });
 
@@ -371,16 +323,16 @@ router.post("/setActiveProperty", async (req, res) => {
   try {
     const usersD = await user.findById(userData._id);
     const activeProperties = await property.find({ userId: userData._id, isActive: true });
-    if(usersD.memberShip.type==='Standard Access' && activeProperties?.length<2){
-        await property.findByIdAndUpdate( { _id: propertyId }, {isActive:true} );
-    }else if (usersD.memberShip.type==='Premium Access' && activeProperties?.length<10) {
-      await property.findByIdAndUpdate( { _id: propertyId }, {isActive:true} );
-    }else{
-    return res.json( convertToResponse({data: {}, status: 200, messageType: "ERROR", messageText: "Property Active / Post Limit Reached as per your Membership.",}) );
+    if (usersD.memberShip.type === 'Standard Access' && activeProperties?.length < 2) {
+      await property.findByIdAndUpdate({ _id: propertyId }, { isActive: true });
+    } else if (usersD.memberShip.type === 'Premium Access' && activeProperties?.length < 10) {
+      await property.findByIdAndUpdate({ _id: propertyId }, { isActive: true });
+    } else {
+      return res.json(convertToResponse({ data: {}, status: 200, messageType: "ERROR", messageText: "Property Active / Post Limit Reached as per your Membership.", }));
     }
-    return res.json( convertToResponse({data: {}, status: 200, messageType: "Success", messageText: "Property set to be Active",}) );
+    return res.json(convertToResponse({ data: {}, status: 200, messageType: "Success", messageText: "Property set to be Active", }));
   } catch (error) {
-    return res.json( convertToResponse({ data: {}, status: 500, messageType: "ERROR", messageText: someThingWentWrong,}));
+    return res.json(convertToResponse({ data: {}, status: 500, messageType: "ERROR", messageText: someThingWentWrong, }));
   }
 });
 
