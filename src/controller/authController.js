@@ -165,10 +165,9 @@ router.post("/google/logout", (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
-    const { email, password } = decodeObject(req.body);
+    const { email, password } = decodeObject(req?.body);
     const userRecord = await user.findOne({email});
-    const decryptedPassword =  decrypt(userRecord?.password);
-    console.log(userRecord , decryptedPassword);
+    const decryptedPassword =  decrypt(userRecord.password);
     if (!userRecord)  return res.json(convertToResponse({data:{},status:400,messageType:'error' , messageText:userNotFound}));
   
     if (password !== decryptedPassword)  return res.json( convertToResponse({data:{},status:400,messageType:'error' , messageText:invalidPassword}));

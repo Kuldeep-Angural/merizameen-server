@@ -32,17 +32,15 @@ app.use(express.json());
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Database connection
 databaseConnector();
 
 // Routes
-app.get("/", (req, res) => res.send(serverTest));
+app.get("/health", (req, res) => res.send(serverTest));
 app.use("/api/auth", authController);
 app.use("/api/user", userController);
 app.use("/api/post",authentication,checkRoles(), postController);
 app.get("/api/", (req, res) => res.json({ message: `Server is running on port ${PORT}` }));
 
-// Start server
 app.listen(PORT, () => {
   console.log("Congratulations! Server started successfully on PORT:", PORT);
   console.log("Wait for loading all modules...");
