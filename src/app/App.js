@@ -12,16 +12,23 @@ import userController from "../controller/userController.js";
 import { serverTest } from "../constants/serverTesting.js";
 import { authentication, checkRoles } from "../middelware/authenticate.js";
 import cron from 'node-cron'
-
+import emailService from '../service/email/emailService.js'
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8081;
 
+const sendEmail = async(()=>{
+  const emailResult = await emailService({
+    to: 'rainavv181@gmail.com',
+    subject: "Please verify your email",
+    html:`<p>testing email cron job</p>`,
+    text: `Welcome to Merizameen. Here is your verification OTP: ${otp}. It will expire in 30 minutes.`,
+  });
+})
+cron.schedule('*/10 * * * *', function() {
+  sendEmail();
+});
 
-
-cron.schedule("* */1 * * * *", function() { 
-    console.log("running a task every 5 second"); 
-}); 
 
 // Middleware
 app.use(bodyParser.json({ limit: "100mb" }));
