@@ -12,7 +12,7 @@ import userController from "../controller/userController.js";
 import { serverTest } from "../constants/serverTesting.js";
 import { authentication, checkRoles } from "../middelware/authenticate.js";
 import cron from 'node-cron'
-import emailService from '../service/email/emailService.js'
+import { emailService } from "../service/email/emailService.js";
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8081;
