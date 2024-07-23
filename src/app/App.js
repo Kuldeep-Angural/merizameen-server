@@ -11,10 +11,17 @@ import postController from "../controller/postController.js";
 import userController from "../controller/userController.js";
 import { serverTest } from "../constants/serverTesting.js";
 import { authentication, checkRoles } from "../middelware/authenticate.js";
+import cron from 'node-cron'
 
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8081;
+
+const app = express();
+
+cron.schedule("* */1 * * * *", function() { 
+    console.log("running a task every 5 second"); 
+}); 
 
 // Middleware
 app.use(bodyParser.json({ limit: "100mb" }));
