@@ -12,22 +12,14 @@ import userController from "../controller/userController.js";
 import { serverTest } from "../constants/serverTesting.js";
 import { authentication, checkRoles } from "../middelware/authenticate.js";
 import cron from 'node-cron'
-import { emailService } from "../service/email/emailService.js";
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8081;
 
-const sendEmail = async () => {
-  const emailResult = await emailService({
-    to: 'rainavv181@gmail.com',
-    subject: "Please verify your email",
-    html: `<p>testing email cron job</p>`,
-    text: `Welcome to Merizameen. this is testing cron job email It will expire in 30 minutes.`,
-  });
-};
 
-cron.schedule('*/10 * * * *', function() {
-  sendEmail();
+
+cron.schedule('*/5 * * * *', function() {
+  console.log('Running a task every 5 minutes');
 });
 
 // Middleware
