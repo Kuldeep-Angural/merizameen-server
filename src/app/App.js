@@ -22,7 +22,7 @@ const sendEmail = async () => {
     to: 'rainavv181@gmail.com',
     subject: "Please verify your email",
     html: `<p>testing email cron job</p>`,
-    text: `Welcome to Merizameen. Here is your verification OTP: ${otp}. It will expire in 30 minutes.`,
+    text: `Welcome to Merizameen. this is testing cron job email It will expire in 30 minutes.`,
   });
 };
 
