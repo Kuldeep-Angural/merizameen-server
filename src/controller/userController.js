@@ -23,6 +23,7 @@ import user from "../model/user.js";
 import { uploadOnCLoudnary } from "../service/cloudnary/cloudnary.js";
 import propertyLikes from "../model/propertyLikes.js";
 import property from "../model/post.js";
+import { authentication, checkRoles } from "../middelware/authenticate.js";
 
 const router = express.Router();
 
@@ -35,7 +36,7 @@ const sendForgotPasswordEmail = async (user, otp) => {
   });
 };
 
-router.post("/details", async (req, res) => {
+router.post("/details",authentication,checkRoles(), async (req, res) => {
   try {
     const userId = req.body.id;
     const existUser = await user.findById(userId);
@@ -72,7 +73,7 @@ router.post("/details", async (req, res) => {
   }
 });
 
-router.post("/updateUser", async (req, res) => {
+router.post("/updateUser",authentication,checkRoles(), async (req, res) => {
   try {
     const { _id, profilePic, name, mobile } = req.body;
     const existUser = await user.findById(_id);
@@ -179,7 +180,9 @@ router.post("/changePassword", async (req, res) => {
   }
 });
 
-router.delete("/delete", async (req, res) => {
+
+
+router.delete("/delete",authentication,checkRoles(), async (req, res) => {
   const { email, id } = req.body;
   try {
     if (id) {
@@ -202,7 +205,9 @@ router.delete("/delete", async (req, res) => {
   }
 });
 
-router.get("/getUserLikes", async (req, res) => {
+
+
+router.get("/getUserLikes",authentication,checkRoles(), async (req, res) => {
   const userData = JSON.parse(req.headers["appcontext"]);
   try {
     const likes = await propertyLikes.find({ userId: userData._id });
@@ -220,11 +225,7 @@ router.get("/getUserLikes", async (req, res) => {
           property: likedProperty
         };
       });
-
-
-
       const uniqueLikes = [];
-
       const userPropertySet = new Set();
 
       results.forEach(like => {
@@ -248,7 +249,10 @@ router.get("/getUserLikes", async (req, res) => {
   }
 });
 
-router.get("/getSellerLikes", async (req, res) => {
+
+
+
+router.get("/getSellerLikes",authentication,checkRoles(), async (req, res) => {
   const userData = JSON.parse(req.headers["appcontext"]);
   try {
     const likes = await propertyLikes.find({ sellerId: userData._id });
@@ -291,7 +295,7 @@ router.get("/getSellerLikes", async (req, res) => {
 });
 
 
-router.get("/getPostedProperties", async (req, res) => {
+router.get("/getPostedProperties",authentication,checkRoles(), async (req, res) => {
   const user = JSON.parse(req.headers["appcontext"]);
   console.log(user);
   try {
@@ -316,7 +320,7 @@ router.post("/markSoldProperty", async (req, res) => {
   }
 });
 
-router.post("/setActiveProperty", async (req, res) => {
+router.post("/setActiveProperty",authentication,checkRoles(), async (req, res) => {
   const { propertyId } = req.body;
   const userData = JSON.parse(req.headers["appcontext"]);
 
@@ -337,10 +341,9 @@ router.post("/setActiveProperty", async (req, res) => {
 });
 
 
-router.post("/buyPlan", async (req, res) => {
+router.post("/buyPlan",authentication,checkRoles(), async (req, res) => {
   const user = JSON.parse(req.headers["appcontext"]);
   const { startDate, endDate, type } = req?.body?.mebmerShipDetails;
-
   try {
     const userData = await User.findById(user._id);
 
@@ -356,25 +359,10 @@ router.post("/buyPlan", async (req, res) => {
       }
     }
 
-    return res.json(
-      convertToResponse({
-        data: {},
-        status: 200,
-        messageType: "Success",
-        messageText: "MemberShip Updated!",
-      })
-    );
+    return res.json(convertToResponse({data: {},status: 200,messageType: "Success",messageText: "MemberShip Updated!",}));
   } catch (error) {
     console.error("Error:", error);
-
-    return res.json(
-      convertToResponse({
-        data: {},
-        status: 500,
-        messageType: "ERROR",
-        messageText: "Something went wrong",
-      })
-    );
+    return res.json(convertToResponse({data: {},status: 500,messageType: "ERROR",messageText: "Something went wrong",}));
   }
 });
 

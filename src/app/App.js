@@ -12,42 +12,39 @@ import userController from "../controller/userController.js";
 import { serverTest } from "../constants/serverTesting.js";
 import { authentication, checkRoles } from "../middelware/authenticate.js";
 import cron from 'node-cron'
+import managePackage from "../cronJobs/managePackage.js";
+import { getCurrentTime } from "../util/util.js";
+import { DefineJobs } from "./DefineJobs.js";
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8081;
 
 
 
-cron.schedule('*/1 * * * *', function() {
-  console.log('Running a task every 5 minutes');
-});
 
 // Middleware
 app.use(bodyParser.json({ limit: "100mb" }));
 app.use(bodyParser.urlencoded({ limit: "100mb", extended: true }));
 app.use(cors({ origin: process.env.CLIENT_URL||'*', methods: "GET,POST,PUT,DELETE", credentials: true }));
 app.options("*", cors());
-app.use(
-  session({
-    secret: "njsbkdbadwq7r923gfb348rt38",
-    resave: false,
-    saveUninitialized: true,
-  })
-);
+app.use( session({secret: "njsbkdbadwq7r923gfb348rt38",resave: false,saveUninitialized: true,}));
 app.use(express.json());
 app.use(passport.initialize());
 app.use(passport.session());
 
 databaseConnector();
 
+//cronjobs starts
+DefineJobs();
+
 // Routes
 app.get("/health", (req, res) => res.send(serverTest));
 app.use("/api/auth", authController);
 app.use("/api/user", userController);
 app.use("/api/post",authentication,checkRoles(), postController);
-app.get("/api/", (req, res) => res.json({ message: `Server is running on port ${PORT}` }));
 
 app.listen(PORT, () => {
+  console.log("time",getCurrentTime(30));
   console.log("Congratulations! Server started successfully on PORT:", PORT);
   console.log("Wait for loading all modules...");
   console.log("*** Meri-Zameen ***");

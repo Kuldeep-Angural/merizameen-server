@@ -9,7 +9,6 @@ import { veriFyOtp } from "../template/emailVerifyTemplate.js";
 import { convertToResponse, decrypt, encrypt, generatePassword, generateRandomNumber, getCurrentTime, } from "../util/util.js";
 
 const router = express.Router();
-const clientUri = process.env.CLIENT_URL;
 
 export const decodeObject = (obj) => {
   const decodedObj = {};
@@ -28,26 +27,12 @@ export const decodeObject = (obj) => {
 async function handleExistingGoogleUser(userRecord, res) {
   const { accessToken } = await generateTokens(userRecord);
   const userData = btoa(`${userRecord._id}:${userRecord.name}:${userRecord.email}:${userRecord.mobile}:${userRecord.roles}`);
-  return res.status(200).json(convertToResponse({
-    data: { accessToken, userData },
-    status: 200,
-    messageType: 'success',
-    messageText: loginSuccessfully
-  }));
+  return res.status(200).json(convertToResponse({ data: { accessToken, userData },status: 200,messageType: 'success',messageText: loginSuccessfully}));
 }
 
 async function createNewGoogleUser({ name, email, password, jti, picture }) {
-  return new user({
-    name,
-    email,
-    password,
-    isGoogleUser: true,
-    googleId: jti,
-    profilePic: picture,
-    isVerified: true,
-  });
+  return new user({ name,email,password,isGoogleUser: true,googleId: jti,profilePic: picture,isVerified: true,});
 }
-
 
 
 router.post('/googleLogin', async (req, res) => {
@@ -92,17 +77,7 @@ router.post("/signup", async (req, res) => {
     const otp = generateRandomNumber();
     const verificationExpiryTime = getCurrentTime(30);
 
-
-    const newUser = new user({
-      name,
-      email,
-      mobile,
-      password: newPassword,
-      createdAt: Date.now(),
-      verificationCode: otp,
-      isVerified: false,
-      verificationExpiryTime,
-    });
+    const newUser = new user({ name,email,mobile,password: newPassword,createdAt: Date.now(),verificationCode: otp,isVerified: false,verificationExpiryTime,});
 
     const savedUser = await newUser.save();
 
@@ -119,6 +94,8 @@ router.post("/signup", async (req, res) => {
     return res.json(convertToResponse({data:{},status:500,messageType:'error' , messageText:internalServerError}));
   }
 });
+
+
 
 router.post("/verify", async (req, res) => {
   try {
@@ -140,25 +117,11 @@ router.post("/verify", async (req, res) => {
       }
     } else {
       await user.findByIdAndDelete(id);
-      return res
-        .status(400)
-        .json(
-          convertToResponse({data:{},status:400,messageType:'error' , messageText:"OTP expired, please register again"}));
+      return res.status(400).json(convertToResponse({data:{},status:400,messageType:'error' , messageText:"OTP expired, please register again"}));
     }
   } catch (error) {
-          res.json(convertToResponse({data:{},status:500,messageType:'error' , messageText:"Internal server error"}));
+      res.json(convertToResponse({data:{},status:500,messageType:'error' , messageText:"Internal server error"}));
   }
-});
-
-
-router.post("/google/logout", (req, res) => {
-  req.logout(function (error) {
-    if (error) {
-      return next(error)
-    } else {
-      res.redirect(`${clientUri}/`);
-    }
-  });
 });
 
 
@@ -220,14 +183,9 @@ router.post("/refreshToken", async (req, res) => {
       const accessToken = jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, {
         expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_TIME,
       });
-      res.status(200).json({
-        accessToken,
-        message: accessTokenCreatedSuccessfully,
-      });
+      res.status(200).json({accessToken,message: accessTokenCreatedSuccessfully,});
     })
-    .catch((err) => {
-      res.json(err);
-    });
+    .catch((err) => {res.json(err)});
 });
 
 export default router;
