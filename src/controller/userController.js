@@ -239,7 +239,6 @@ router.get("/getUserLikes",authentication,checkRoles(), async (req, res) => {
       });
 
 
-      console.log(uniqueLikes);
       res.json(convertToResponse({ data: uniqueLikes, status: 200, messageType: "SUCCESS", messageText: "Here is The Likes", }))
     } else {
       res.json(convertToResponse({ data: {}, status: 200, messageType: "SUCCESS", messageText: 'No Data Found', }));
@@ -297,7 +296,6 @@ router.get("/getSellerLikes",authentication,checkRoles(), async (req, res) => {
 
 router.get("/getPostedProperties",authentication,checkRoles(), async (req, res) => {
   const user = JSON.parse(req.headers["appcontext"]);
-  console.log(user);
   try {
     const postedProperty = await property.find({ userId: user._id });
     if (postedProperty) {

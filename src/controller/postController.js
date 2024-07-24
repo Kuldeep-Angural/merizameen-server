@@ -109,7 +109,6 @@ router.get("/allPropertys", async (req, res) => {
   const data = JSON.parse(req.headers["appcontext"]);
   try {
     const properties = await property.find({ isActive: true });
-    console.log(properties?.length);
     res.json( convertToResponse({data: properties,status: 200,messageType: "Success",messageText: "", }) );
   } catch (error) {
     console.error("Error fetching properties:", error);

@@ -1,19 +1,16 @@
-import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
-import passport from "passport";
+import express from "express";
 import session from "express-session";
+import passport from "passport";
 
 import databaseConnector from "../config/databaseConnector.js";
+import { serverTest } from "../constants/serverTesting.js";
 import authController from "../controller/authController.js";
 import postController from "../controller/postController.js";
 import userController from "../controller/userController.js";
-import { serverTest } from "../constants/serverTesting.js";
 import { authentication, checkRoles } from "../middelware/authenticate.js";
-import cron from 'node-cron'
-import managePackage from "../cronJobs/managePackage.js";
-import { getCurrentTime } from "../util/util.js";
 import { DefineJobs } from "./DefineJobs.js";
 dotenv.config();
 const app = express();
@@ -44,7 +41,6 @@ app.use("/api/user", userController);
 app.use("/api/post",authentication,checkRoles(), postController);
 
 app.listen(PORT, () => {
-  console.log("time",getCurrentTime(30));
   console.log("Congratulations! Server started successfully on PORT:", PORT);
   console.log("Wait for loading all modules...");
   console.log("*** Meri-Zameen ***");
