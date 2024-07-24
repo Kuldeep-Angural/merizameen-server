@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 8081;
 
 
 
-cron.schedule('*/5 * * * *', function() {
+cron.schedule('*/1 * * * *', function() {
   console.log('Running a task every 5 minutes');
 });
 
