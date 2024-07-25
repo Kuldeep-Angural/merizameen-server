@@ -7,6 +7,10 @@ import { uploadOnCLoudnary } from "../service/cloudnary/cloudnary.js";
 import property from "../model/post.js";
 import propertyLikes from "../model/propertyLikes.js";
 import user from "../model/user.js";
+import callRequest from "../model/callRequest.js";
+import { emailService } from "../service/email/emailService.js";
+import { callBackTemplate } from "../template/callBackTemplate.js";
+import { someThingWentWrong } from "../constants/message.js";
 
 const router = express.Router();
 const upload = multer({ storage });
@@ -15,7 +19,7 @@ const upload = multer({ storage });
 
 router.post("/addProperty",upload.array("propertyImages"), async (req, res) => {
     const { mainImage,propertyImages,basicInfo,landMarks,amenities,location,} = req?.body || {};
-    const { state, city, district, pinCode } = location || {};
+    const { state, city, district, pinCode ,localAddress} = location || {};
     const { propertyType,bedRoom,bathRoom,totalArea,carpetArea,propertyAge,description,title,price,postFor,} = basicInfo || {};
     const { carParking,maintenance,vastuCompliant,gym,park,powerBackup,clubHouse,} = amenities || {};
     const { hospital, atm, bank, railway, metro, airport } = landMarks || {};
@@ -35,6 +39,7 @@ router.post("/addProperty",upload.array("propertyImages"), async (req, res) => {
       location: {
         city: city,
         state: state,
+        localAddress:localAddress,
         district: district,
         pinCode: pinCode,
       },
@@ -150,7 +155,6 @@ router.post("/likes", authentication,checkRoles() ,async (req, res) => {
 });
 
 
-
 router.post("/deleteProperty", async (req, res) => {
   try {
     const retrievedProperty = await property.findById(req.body.id);
@@ -175,5 +179,49 @@ router.post("/deleteProperty", async (req, res) => {
     res.status(500).json( convertToResponse({ data: {}, status: 500, messageType: "Error",messageText: "An error occurred while processing your request.",}) );
   }
 });
+
+router.post("/requestCallBack", authentication,checkRoles() ,async (req, res) => {
+  const userData = JSON.parse(req.headers["appcontext"]);
+
+
+  if (req.body && userData) {  
+    const {name , mobile , message , propertyId} = req.body;
+    
+    const retrivedproperty = await property.findById(propertyId);
+    
+    const retrivedSeller = await  user.findById(retrivedproperty?.userId);
+    console.log(retrivedSeller);
+    
+    const callBackRequest = new  callRequest({
+      sellerId:retrivedSeller?._id,
+      userId:userData._id,
+      propertyId:propertyId,
+      requestContent:{
+        name:name,
+        mobile:mobile,
+        email:userData?.email,
+        message:message
+      }
+      
+    })
+    
+    const emailResult = await emailService({
+      to: retrivedSeller?.email,
+      subject: "Call-Back request Please respone this asap",
+      html:callBackTemplate({sellerName:retrivedSeller.name , propertyTitle:retrivedproperty.title , userName:name, email:userData?.email , mobile:mobile}),
+      text: '',
+    });
+    
+    const saveRequest = await callBackRequest.save();
+    
+    res.json(convertToResponse({data:{} , messageText:'Call-Back request sented!' , messageType:'success' , status:200}))
+  }else{
+
+    res.json(convertToResponse({data:{} , messageText:someThingWentWrong , messageType:'error' , status:400}))
+  }
+  
+})
+
+
 
 export default router;

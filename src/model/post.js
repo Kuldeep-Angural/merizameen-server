@@ -12,6 +12,7 @@ const propertySchema = new Schema({
     type: Object,
     state: { type: String, required: true, maxlength: 328989 },
     city: { type: String, required: true, maxlength: 328989 },
+    localAddress :{type :String , maxlength:32000 },
     district: { type: String, required: true, maxlength: 328989 },
     pinCode: { type: String, required: true, maxlength: 328989 },
   },
