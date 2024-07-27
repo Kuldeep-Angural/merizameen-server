@@ -9,14 +9,13 @@ import databaseConnector from "../config/databaseConnector.js";
 import { serverTest } from "../constants/serverTesting.js";
 import authController from "../controller/authController.js";
 import postController from "../controller/postController.js";
+import adminController from '../controller/adminController.js';
 import userController from "../controller/userController.js";
-import { authentication, checkRoles } from "../middelware/authenticate.js";
+import { authentication, checkRoles, isAdmin } from "../middelware/authenticate.js";
 import { DefineJobs } from "./DefineJobs.js";
 dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 8081;
-
-
 
 
 // Middleware
@@ -39,6 +38,8 @@ app.get("/health", (req, res) => res.send(serverTest));
 app.use("/api/auth", authController);
 app.use("/api/user", userController);
 app.use("/api/post",authentication,checkRoles(), postController);
+app.use("/api/admin",authentication,checkRoles(),isAdmin(),adminController);
+
 
 app.listen(PORT, () => {
   console.log("Congratulations! Server started successfully on PORT:", PORT);

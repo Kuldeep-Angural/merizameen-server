@@ -50,12 +50,24 @@ export const authentication = async (req, res, next) => {
 export const checkRoles = () => {
     return (req, res, next) => {
         const user = req?.user;
-        console.log(user);
         if (user && (user.roles[0]==='user' || user.roles[0] ==='owner')) {
             next();
         } else {
             console.log(notAuthorized);
             res.status(403).json({ error: true, message: notAuthorized });
+        }
+    };
+};
+
+
+
+export const isAdmin = () => {
+    return (req, res, next) => {
+        const user = req?.user;
+        if (user && user.roles[0]==='owner') {
+            next();
+        } else {
+            res.status(403).json({ error: true, message: notAuthorized  });
         }
     };
 };
