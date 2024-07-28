@@ -27,7 +27,7 @@ const propertySchema = new Schema({
   amenities: {
     type: Object,
     carParking: { type: String, default: "N" },
-    mainMaintenance: { type: String, default: "N" },
+    maintenance: { type: String, default: "N" },
     vastuCompliant: { type: String, default: "N" },
     powerBackup: { type: String, default: "N" },
     park: { type: String, default: "N" },

@@ -1,15 +1,17 @@
 import express from "express";
 import user from "../model/user.js";
-import { convertToResponse } from "../util/util.js";
+import { convertToResponse, encrypt } from "../util/util.js";
 import property from "../model/post.js";
 import feedBack from "../model/feedBack.js";
 import { userAlreadyExist } from "../constants/message.js";
+import propertyLikes from "../model/propertyLikes.js";
+import { uploadOnCLoudnary } from "../service/cloudnary/cloudnary.js";
 
 const router = express.Router();
 
 
 router.post('/allUsers', async (req, res) => {
-    const allUsers = await user.find();
+    const allUsers = await user.find({ roles: { $nin: ['owner'] } });
     if (allUsers.length > 0) {
         res.json(convertToResponse({ data: allUsers, status: 200, messageType: "SUCCESS", messageText: "Here is The All users of the Merizameen", }))
     } else {
@@ -34,8 +36,8 @@ router.post('/getuser', async (req, res) => {
 
 router.post('/user/properties', async (req, res) => {
     const { id } = req.body;
-    const AllProperties = await property.find({userId:id});
-    if (AllProperties) {
+    const AllProperties = await property.find({ userId: id });
+    if (AllProperties?.length>0 ) {
         res.json(convertToResponse({ data: AllProperties, status: 200, messageType: "SUCCESS", messageText: "Here is The All Properties of the user", }))
     } else {
         res.json(convertToResponse({ data: [], status: 200, messageType: "SUCCESS", messageText: "There is No properties added by this user", }))
@@ -69,6 +71,57 @@ router.post('/deleteuser', async (req, res) => {
     }
 
 })
+
+
+
+router.post('/updateuser', async (req, res) => {
+    const { _id, name, email, mobile, password, memberShip, usage, roles } = req.body;
+    console.log(req.body);
+    const retrivedUser = await user.findById(_id);
+    if (retrivedUser) {
+        const newPassword = encrypt(password);
+        await user.findByIdAndUpdate(_id, {
+            name: name,
+            email: email,
+            mobile: mobile,
+            memberShip: memberShip,
+            roles: roles,
+            password: newPassword,
+        })
+        res.json(convertToResponse({ data: {}, status: 200, messageType: "Success", messageText: " User Updated Successfully ! ", }));
+    } else {
+        res.json(convertToResponse({ data: {}, status: 201, messageType: "error", messageText: "user not found  or some thing went wrong", }));
+
+    }
+})
+
+
+
+router.post('/deleteproperty', async (req, res) => {
+    const { id, } = req.body;
+
+    const prop = await property.findById(id);
+    const u = await user.findById(prop.userId);
+    if (prop) {
+
+        await propertyLikes.deleteMany({ property: prop._id })
+        const propUser = await user.findByIdAndUpdate(prop.userId, {
+            usage: {
+                posts: Number(u.usage.posts) - 1
+            }
+        })
+
+        await property.findByIdAndDelete(id);
+
+        res.json(convertToResponse({ data: {}, status: 200, messageType: "Success", messageText: " Property Deleted Successfully ! ", }));
+    } else {
+        res.json(convertToResponse({ data: {}, status: 201, messageType: "error", messageText: " some thing went wrong", }));
+
+    }
+})
+
+
+
 
 
 
