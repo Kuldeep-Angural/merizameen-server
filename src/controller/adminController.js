@@ -6,6 +6,7 @@ import feedBack from "../model/feedBack.js";
 import { userAlreadyExist } from "../constants/message.js";
 import propertyLikes from "../model/propertyLikes.js";
 import { uploadOnCLoudnary } from "../service/cloudnary/cloudnary.js";
+import callRequest from "../model/callRequest.js";
 
 const router = express.Router();
 
@@ -120,6 +121,37 @@ router.post('/deleteproperty', async (req, res) => {
     }
 })
 
+
+
+
+router.post('/userJourney', async (req, res) => {
+    const { id, } = req.body;
+
+    const allProperties = await property.find({ userId: id }).sort({ postedAt: -1 });
+
+    if (allProperties) {
+        const newPropertyWithLikesAndMessages = await Promise.all(
+            allProperties.map(async (item) => {
+                const [likes, messages] = await Promise.all([
+                    propertyLikes.find({ property: item._id }),
+                    callRequest.find({ propertyId: item._id })
+                ]);
+    
+                return {
+                    ...item.toObject(),
+                    likes,
+                    messages
+                };
+            })
+        );
+    
+        res.json(convertToResponse({data: { newPropertyWithLikesAndMessages },status: 200,messageType: "SUCCESS",messageText: "Here are all the properties of the user."}));
+    } else {
+        res.json(convertToResponse({ data: {}, status: 201, messageType: "SUCCESS", messageText: "No Data Found", }))
+    }
+
+
+});
 
 
 

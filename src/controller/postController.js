@@ -20,7 +20,8 @@ const upload = multer({ storage });
 router.post("/addProperty", upload.array("propertyImages"), async (req, res) => {
   const { mainImage, propertyImages, basicInfo, landMarks, amenities, location, } = req?.body || {};
   const { state, city, district, pinCode, localAddress } = location || {};
-  const { propertyType, bedRoom, bathRoom, totalArea, carpetArea, propertyAge, description, title, price, postFor, } = basicInfo || {};
+  const { propertyType, bedRooms, bathRooms, totalArea, carPetArea, ageOfProperty, description, title, price, postFor, } = basicInfo || {};
+
   const { carParking, maintenance, vastuCompliant, gym, park, powerBackup, clubHouse, } = amenities || {};
   const { hospital, atm, bank, railway, metro, airport } = landMarks || {};
   let index = 0;
@@ -44,11 +45,11 @@ router.post("/addProperty", upload.array("propertyImages"), async (req, res) => 
       pinCode: pinCode,
     },
     basicInfo: {
-      bedRooms: bedRoom,
-      bathRooms: bathRoom,
+      bedRooms: bedRooms,
+      bathRooms: bathRooms,
       totalArea: totalArea,
-      carPetArea: carpetArea,
-      ageOfProperty: propertyAge,
+      carPetArea: carPetArea,
+      ageOfProperty: ageOfProperty,
     },
     amenities: {
       carParking: carParking || undefined,
@@ -118,8 +119,9 @@ router.post('/updateproperty', async (req, res) => {
   let index = 0;
   const userId = req?.user?._id;
   const propertyImagesUrl = [];
+ 
 
-
+  console.log(req?.body);
   const mainImageUrl = await uploadOnCLoudnary(mainImage, `mainImage`, `propertyId:${id}`);
   for (const file of propertyImages) {
     const result = await uploadOnCLoudnary(file, `propertyImages${index}`, `propertyId:${id}`);
@@ -129,6 +131,10 @@ router.post('/updateproperty', async (req, res) => {
     index++;
   }
 
+
+
+
+ 
   const newProperty = await  property.findByIdAndUpdate(id,{
     mainImage:mainImageUrl,
     propertyImages:propertyImagesUrl,
