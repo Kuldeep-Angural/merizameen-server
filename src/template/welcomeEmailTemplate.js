@@ -7,7 +7,7 @@ export const welcomeEmail = ({name,email}) => {
       </div>
       <div style="margin-bottom: 20px; font-size: 1.1em; color: #333;">
         <p>Hi, ${name}</p>
-        <p>Your account is verified. You can log in using ${email} and your registered password.</p>
+        <p>Your account is verified.</p>
         <p>Stay connected and explore all that we have to offer!</p>
       </div>
       <div style="text-align: center;">

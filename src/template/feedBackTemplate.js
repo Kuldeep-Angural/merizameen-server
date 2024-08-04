@@ -1,5 +1,5 @@
 export const feedBackTemplate = ({ userName, email, feedBack }) => {
-    return (`
+  return (`
    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; line-height: 1.6; background-color: #f4f4f4;">
   <div style="max-width: 600px; margin: 20px auto; padding: 20px; background-color: #fff; border-radius: 12px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
     <div style="text-align: center; margin-bottom: 20px;">
@@ -33,9 +33,5 @@ export const feedBackTemplate = ({ userName, email, feedBack }) => {
   </div>
 </body>
   
-  
-  {sellerName , userName , email , mobile , message , propertyTitle}
-
-
   `)
 };
